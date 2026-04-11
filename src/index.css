@@ -1,0 +1,118 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 39 30% 96%;
+    --foreground: 1 25% 20%;
+
+    --card: 39 30% 100%;
+    --card-foreground: 1 25% 20%;
+
+    --popover: 39 30% 100%;
+    --popover-foreground: 1 25% 20%;
+
+    --primary: 7 43% 46%;
+    --primary-foreground: 39 30% 96%;
+
+    --secondary: 346 35% 34%;
+    --secondary-foreground: 39 48% 90%;
+
+    --muted: 39 25% 90%;
+    --muted-foreground: 1 15% 45%;
+
+    --accent: 39 48% 69%;
+    --accent-foreground: 1 25% 20%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 39 20% 85%;
+    --input: 39 20% 85%;
+    --ring: 7 43% 46%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 1 20% 97%;
+    --sidebar-foreground: 1 25% 25%;
+    --sidebar-primary: 7 43% 46%;
+    --sidebar-primary-foreground: 39 30% 96%;
+    --sidebar-accent: 39 48% 85%;
+    --sidebar-accent-foreground: 1 25% 20%;
+    --sidebar-border: 39 20% 88%;
+    --sidebar-ring: 7 43% 46%;
+
+    --warning: 39 48% 69%;
+    --warning-foreground: 1 25% 20%;
+    --success: 59 47% 70%;
+    --success-foreground: 1 25% 20%;
+
+    --chart-1: 7 43% 46%;
+    --chart-2: 346 35% 34%;
+    --chart-3: 39 48% 69%;
+    --chart-4: 59 47% 70%;
+    --chart-5: 1 25% 25%;
+  }
+
+  .dark {
+    --background: 1 20% 10%;
+    --foreground: 39 25% 90%;
+
+    --card: 1 20% 14%;
+    --card-foreground: 39 25% 90%;
+
+    --popover: 1 20% 14%;
+    --popover-foreground: 39 25% 90%;
+
+    --primary: 7 43% 50%;
+    --primary-foreground: 39 30% 96%;
+
+    --secondary: 346 30% 28%;
+    --secondary-foreground: 39 48% 85%;
+
+    --muted: 1 15% 20%;
+    --muted-foreground: 39 15% 60%;
+
+    --accent: 39 35% 25%;
+    --accent-foreground: 39 48% 80%;
+
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 1 15% 22%;
+    --input: 1 15% 22%;
+    --ring: 7 43% 50%;
+
+    --sidebar-background: 1 20% 12%;
+    --sidebar-foreground: 39 25% 88%;
+    --sidebar-primary: 7 43% 50%;
+    --sidebar-primary-foreground: 39 30% 96%;
+    --sidebar-accent: 39 35% 22%;
+    --sidebar-accent-foreground: 39 48% 80%;
+    --sidebar-border: 1 15% 20%;
+    --sidebar-ring: 7 43% 50%;
+
+    --warning: 39 48% 55%;
+    --warning-foreground: 1 25% 15%;
+    --success: 59 40% 50%;
+    --success-foreground: 1 25% 15%;
+
+    --chart-1: 7 43% 50%;
+    --chart-2: 346 30% 40%;
+    --chart-3: 39 48% 60%;
+    --chart-4: 59 40% 55%;
+    --chart-5: 1 20% 35%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+}
