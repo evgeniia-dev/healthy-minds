@@ -5,10 +5,15 @@ import type { Database } from "@/integrations/supabase/types";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
+type UserProfile = {
+  full_name: string | null;
+  avatar_url: string | null;
+};
+
 interface AuthContextType {
   user: User | null;
   role: AppRole | null;
-  profile: { full_name: string | null; avatar_url: string | null } | null;
+  profile: UserProfile | null;
   loading: boolean;
   signOut: () => Promise<void>;
 }
@@ -24,46 +29,73 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<AppRole | null>(null);
-  const [profile, setProfile] = useState<{ full_name: string | null; avatar_url: string | null } | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchUserData = async (userId: string) => {
     const [profileRes, roleRes] = await Promise.all([
-      supabase.from("profiles").select("full_name, avatar_url").eq("user_id", userId).maybeSingle(),
-      supabase.from("user_roles").select("role").eq("user_id", userId).maybeSingle(),
+      supabase
+        .from("profiles")
+        .select("full_name, avatar_url")
+        .eq("user_id", userId)
+        .maybeSingle(),
+      supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .maybeSingle(),
     ]);
+
+    if (profileRes.error) {
+      console.error("Failed to fetch profile:", profileRes.error);
+    }
+
+    if (roleRes.error) {
+      console.error("Failed to fetch role:", roleRes.error);
+    }
+
     setProfile(profileRes.data ?? null);
-    setRole(roleRes.data?.role ?? "patient");
+    setRole(roleRes.data?.role ?? null);
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const handleSession = async (
+      session: Awaited<ReturnType<typeof supabase.auth.getSession>>["data"]["session"]
+    ) => {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
+
       if (currentUser) {
-        // Don't await — fetch in background to avoid blocking auth flow
-        fetchUserData(currentUser.id);
+        await fetchUserData(currentUser.id);
       } else {
         setProfile(null);
         setRole(null);
       }
+
       setLoading(false);
+    };
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      void handleSession(session);
     });
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
-      if (currentUser) {
-        await fetchUserData(currentUser.id);
-      }
-      setLoading(false);
+    void supabase.auth.getSession().then(({ data: { session } }) => {
+      void handleSession(session);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      console.error("Sign out failed:", error);
+      throw error;
+    }
+
     setUser(null);
     setProfile(null);
     setRole(null);

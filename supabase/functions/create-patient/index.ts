@@ -11,8 +11,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Verify the calling user is authenticated and is a professional
     const authHeader = req.headers.get("Authorization");
+
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Missing authorization" }), {
         status: 401,
@@ -20,78 +20,139 @@ Deno.serve(async (req) => {
       });
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
-    // Client with caller's JWT to verify identity
-    const userClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
+    if (!supabaseUrl || !anonKey || !serviceRoleKey) {
+      return new Response(
+        JSON.stringify({ error: "Missing Supabase environment variables" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
-    const { data: { user: caller } } = await userClient.auth.getUser();
-    if (!caller) {
+
+    const {
+      data: { user: caller },
+      error: callerError,
+    } = await userClient.auth.getUser();
+
+    if (callerError || !caller) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Check professional role
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
-    const { data: roleData } = await adminClient
+
+    const { data: roleData, error: roleError } = await adminClient
       .from("user_roles")
       .select("role")
       .eq("user_id", caller.id)
       .eq("role", "professional")
       .maybeSingle();
 
+    if (roleError) {
+      return new Response(
+        JSON.stringify({ error: `Role check failed: ${roleError.message}` }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
     if (!roleData) {
-      return new Response(JSON.stringify({ error: "Only professionals can create patients" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "Only professionals can create patients" }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
 
-    const { email, password, full_name } = await req.json();
-    if (!email || !password || !full_name) {
-      return new Response(JSON.stringify({ error: "Missing required fields" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const body = await req.json();
+    const email = body?.email?.trim();
+    const fullName = body?.full_name?.trim();
+
+    if (!email || !fullName) {
+      return new Response(
+        JSON.stringify({ error: "Missing required fields: email and full_name" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
 
-    // Create patient using admin API (doesn't affect caller's session)
-    const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: { full_name, role: "patient" },
-    });
+    const redirectTo = `${req.headers.get("origin") || "http://localhost:8081"}/auth`;
 
-    if (createError || !newUser.user) {
-      return new Response(JSON.stringify({ error: createError?.message || "Failed to create user" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    const { data: inviteData, error: inviteError } =
+      await adminClient.auth.admin.inviteUserByEmail(email, {
+        data: {
+          full_name: fullName,
+          role: "patient",
+        },
+        redirectTo,
       });
+
+    if (inviteError || !inviteData.user) {
+      return new Response(
+        JSON.stringify({
+          error: inviteError?.message || "Failed to invite patient",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
 
-    // Link patient to professional
+    const patientId = inviteData.user.id;
+
     const { error: linkError } = await adminClient
       .from("patient_professional_links")
-      .insert({ patient_id: newUser.user.id, professional_id: caller.id });
+      .insert({
+        patient_id: patientId,
+        professional_id: caller.id,
+      });
 
     if (linkError) {
-      return new Response(JSON.stringify({ error: "User created but linking failed: " + linkError.message }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({
+          error: `Patient invited but linking failed: ${linkError.message}`,
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
 
-    return new Response(JSON.stringify({ user_id: newUser.user.id, email: newUser.user.email }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({
+        user_id: patientId,
+        email: inviteData.user.email,
+        invited: true,
+        message: "Patient invitation email sent",
+      }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
+    const message = err instanceof Error ? err.message : "Unknown error";
+
+    return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
