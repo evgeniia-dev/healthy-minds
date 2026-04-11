@@ -11,20 +11,10 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const authHeader = req.headers.get("Authorization");
-
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Missing authorization" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
-    if (!supabaseUrl || !anonKey || !serviceRoleKey) {
+    if (!supabaseUrl || !serviceRoleKey) {
       return new Response(
         JSON.stringify({ error: "Missing Supabase environment variables" }),
         {
@@ -34,58 +24,18 @@ Deno.serve(async (req) => {
       );
     }
 
-    const userClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    const {
-      data: { user: caller },
-      error: callerError,
-    } = await userClient.auth.getUser();
-
-    if (callerError || !caller) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
-
-    const { data: roleData, error: roleError } = await adminClient
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", caller.id)
-      .eq("role", "professional")
-      .maybeSingle();
-
-    if (roleError) {
-      return new Response(
-        JSON.stringify({ error: `Role check failed: ${roleError.message}` }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    if (!roleData) {
-      return new Response(
-        JSON.stringify({ error: "Only professionals can create patients" }),
-        {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
 
     const body = await req.json();
     const email = body?.email?.trim();
     const fullName = body?.full_name?.trim();
+    const professionalId = body?.professional_id?.trim();
 
-    if (!email || !fullName) {
+    if (!email || !fullName || !professionalId) {
       return new Response(
-        JSON.stringify({ error: "Missing required fields: email and full_name" }),
+        JSON.stringify({
+          error: "Missing required fields: email, full_name, professional_id",
+        }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -93,7 +43,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const redirectTo = `${req.headers.get("origin") || "http://localhost:8081"}/auth`;
+    const redirectTo = `${req.headers.get("origin") || "http://localhost:8090"}/auth`;
 
     const { data: inviteData, error: inviteError } =
       await adminClient.auth.admin.inviteUserByEmail(email, {
@@ -122,7 +72,7 @@ Deno.serve(async (req) => {
       .from("patient_professional_links")
       .insert({
         patient_id: patientId,
-        professional_id: caller.id,
+        professional_id: professionalId,
       });
 
     if (linkError) {
@@ -139,9 +89,9 @@ Deno.serve(async (req) => {
 
     return new Response(
       JSON.stringify({
+        success: true,
         user_id: patientId,
         email: inviteData.user.email,
-        invited: true,
         message: "Patient invitation email sent",
       }),
       {

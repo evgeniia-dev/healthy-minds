@@ -96,17 +96,36 @@ export default function Patients() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("create-patient", {
-        body: {
-          email: newEmail,
-          full_name: newName,
-        },
-      });
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-      if (error) {
-        toast.error(error.message || "Failed to invite patient");
-      } else if (data?.error) {
-        toast.error(data.error);
+      if (!session?.access_token) {
+        toast.error("You are not authenticated");
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-patient`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            email: newEmail,
+            full_name: newName,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        toast.error(result.error || "Failed to invite patient");
       } else {
         toast.success(`Invitation sent to ${newEmail}`);
         setOpen(false);
