@@ -27,7 +27,7 @@ Healthcare Professional
 	•	Mood and behavioral trend visualization
 	•	Population-level mental health indicators for contextual comparison
 
-	Population Data
+Population Data
 
 The platform integrates public indicators from:
 
