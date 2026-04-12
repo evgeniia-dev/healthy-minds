@@ -2,114 +2,63 @@ Healthy Minds is a mental health monitoring platform that allows patients to tra
 
 The platform is designed as a proof-of-concept health technology system demonstrating how behavioral data and public health statistics can support mental wellbeing monitoring.
 
-System Overview
+Live Demo: 
 
-The system consists of three main components:
+Frontend:
+https://healthy-minds-1.onrender.com
 
-Frontend
-	•	React + Vite
-	•	TypeScript
-	•	Data visualization (charts, calendar, correlation matrix)
+Backend API:
+https://healthy-minds-au98.onrender.com/docs
 
-Backend
-	•	FastAPI (Python)
-	•	REST API
-	•	JWT authentication
+Features
 
-Database
-	•	PostgreSQL
-	•	Relational schema for users, mood entries, patient–professional links, and treatment notes
+Patient
+	•	Daily wellbeing check-in
+	•	Mood tracking calendar
+	•	Behavioral trend charts
+	•	Correlation matrix between lifestyle factors
+	•	Risk indicator based on behavioral signals
+	•	Population comparison using Finnish public health data
 
-The platform integrates Finnish public health data through the Sotkanet open data API to provide contextual population-level indicators.
-
-Current Functionality
-
-Authentication
-	•	Professional signup
-	•	Professional login
-	•	Patient accounts created by professionals
-	•	JWT-based authentication
-
-Patient Features
-	•	Daily mental health check-in
-	•	Mood tracking (1–10 scale)
-	•	Sleep tracking
-	•	Stress level tracking
-	•	Exercise tracking
-	•	Optional notes
-
-Patient Dashboard
-	•	Mood calendar visualization
-	•	Trend charts for mood, sleep, stress, and exercise
-	•	Correlation matrix between behavioral factors
-	•	Risk indicator comparing personal trends with population data
-
-Professional Features
+Healthcare Professional
 	•	Professional dashboard
-	•	Patient list
-	•	Patient detail view
-	•	Access to patient mood history
-	•	Treatment note system
+	•	Patient management
+	•	Treatment note recording
+	•	Mood and behavioral trend visualization
+	•	Population-level mental health indicators for contextual comparison
 
-Data Integration
-	•	Finnish population health indicators from Sotkanet
-	•	Used to provide contextual mental health insights
+	Population Data
 
-⸻
+The platform integrates public indicators from:
 
-What Is Still Incomplete
+Sotkanet Statistics and Indicator Bank
+Finnish Institute for Health and Welfare (THL)
 
-These features are planned but not yet implemented:
+Indicators currently used:
+	•	Severe mental strain (%)
+	•	Anxiety or insomnia (%)
+	•	Psychiatric outpatient visits per 1000
 
-Authentication Improvements
-	•	Email confirmation during signup
-	•	Password reset
-	•	Email invitations for patients
+These indicators are used only as contextual population references, not for diagnosis.
 
-Platform Features
-	•	Real-time alerts for risk patterns
-	•	Automatic patient risk scoring
-	•	Improved professional dashboard statistics
-	•	Treatment note visibility for patients (optional design decision)
-
-Data / Analytics Improvements
-	•	More advanced correlation analysis
-	•	Risk prediction model using population-level data
-	•	Additional behavioral indicators
-
-Deployment (Planned)
-
-To make the system publicly accessible the following deployment architecture is planned:
-
-Frontend
-	•	GitHub Pages or Vercel
-
-Backend
-	•	Render / Railway FastAPI service
-
-Database
-	•	Managed PostgreSQL (Render, Supabase, or Neon)
-
-Project Purpose
-
-This project was developed as a software engineering course project demonstrating:
-	•	Full-stack system architecture
-	•	REST API design
-	•	Database modeling
-	•	Health data visualization
-	•	Integration of public health datasets
-
-The goal is to explore how behavioral self-tracking combined with population health data can support mental wellbeing monitoring.
+Layer - Technology
+Frontend - React, Vite, TypeScript, Tailwind
+Backend - FastAPI, SQLAlchemy
+Database - PostgreSQL
+Charts - Recharts
+Hosting - Render
 
 
-!!! NOTE: Supabase folder in repository is not actually functional. This folder contains the original Supabase configuration and migrations used during early development of the Healthy Minds project.
+Future Improvements
+	•	email verification
+	•	password reset flow
+	•	patient invitation system
+	•	improved risk prediction model
+	•	advanced analytics
+	•	mobile UI improvements
+	•	better visualization of behavioral correlations
 
-The application architecture has since migrated to a FastAPI backend located in:
 
-backend/
+!!! Disclaimer
 
-and a React frontend in:
-
-frontend/
-
-The Supabase files are kept here only as an archive/reference and are not used by the current application runtime.
+Healthy Minds is a prototype research project created for educational purposes. 
