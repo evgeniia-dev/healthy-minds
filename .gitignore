@@ -12,6 +12,11 @@ lerna-debug.log*
 .env.*
 !.env.example
 
+# Build output
+dist
+frontend/dist
+frontend/dist-ssr
+
 # Frontend
 frontend/node_modules
 frontend/dist
