@@ -100,3 +100,16 @@ This project was developed as a software engineering course project demonstratin
 	•	Integration of public health datasets
 
 The goal is to explore how behavioral self-tracking combined with population health data can support mental wellbeing monitoring.
+
+
+!!! NOTE: Supabase folder in repository is not actually functional. This folder contains the original Supabase configuration and migrations used during early development of the Healthy Minds project.
+
+The application architecture has since migrated to a FastAPI backend located in:
+
+backend/
+
+and a React frontend in:
+
+frontend/
+
+The Supabase files are kept here only as an archive/reference and are not used by the current application runtime.
