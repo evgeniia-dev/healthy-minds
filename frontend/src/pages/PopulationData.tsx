@@ -10,6 +10,13 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
@@ -33,6 +40,19 @@ function formatValue(value: number | null) {
     return "N/A";
   }
   return value.toFixed(1);
+}
+
+function shortName(name: string) {
+  if (name.includes("Severe mental strain")) {
+    return "Severe mental strain";
+  }
+  if (name.includes("Anxiety or insomnia")) {
+    return "Anxiety or insomnia";
+  }
+  if (name.includes("Psychiatric outpatient visits")) {
+    return "Psychiatric outpatient visits";
+  }
+  return name;
 }
 
 export default function PopulationData() {
@@ -98,19 +118,42 @@ export default function PopulationData() {
     return groupedIndicators.find((group) => group.indicator_id === selectedIndicatorId) ?? null;
   }, [groupedIndicators, selectedIndicatorId]);
 
+  const latestStats = useMemo(() => {
+    return groupedIndicators.map((group) => {
+      const latestWithValue = [...group.rows].reverse().find((row) => row.value !== null);
+      return {
+        indicator_id: group.indicator_id,
+        indicator_name: group.indicator_name,
+        region: group.region,
+        latestYear: latestWithValue?.year ?? null,
+        latestValue: latestWithValue?.value ?? null,
+      };
+    });
+  }, [groupedIndicators]);
+
   const chartData = useMemo(() => {
     if (!selectedIndicator) {
       return [];
     }
 
-    return selectedIndicator.rows.map((row) => ({
-      year: String(row.year),
-      value: row.value,
-    }));
+    return selectedIndicator.rows
+      .filter((row) => row.value !== null)
+      .map((row) => ({
+        year: String(row.year),
+        value: row.value as number,
+      }));
+  }, [selectedIndicator]);
+
+  const tableRows = useMemo(() => {
+    if (!selectedIndicator) {
+      return [];
+    }
+
+    return selectedIndicator.rows;
   }, [selectedIndicator]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Population Data</h1>
         <p className="text-muted-foreground">
@@ -133,34 +176,30 @@ export default function PopulationData() {
       ) : (
         <>
           <div className="grid gap-4 md:grid-cols-3">
-            {groupedIndicators.map((group) => {
-              const latestWithValue = [...group.rows]
-                .reverse()
-                .find((row) => row.value !== null);
-
-              const isSelected = group.indicator_id === selectedIndicatorId;
+            {latestStats.map((stat) => {
+              const isSelected = stat.indicator_id === selectedIndicatorId;
 
               return (
                 <Card
-                  key={group.indicator_id}
+                  key={stat.indicator_id}
                   className={`cursor-pointer transition-colors ${
                     isSelected ? "ring-2 ring-primary" : "hover:bg-accent/40"
                   }`}
-                  onClick={() => setSelectedIndicatorId(group.indicator_id)}
+                  onClick={() => setSelectedIndicatorId(stat.indicator_id)}
                 >
                   <CardHeader className="pb-2">
+                    <CardDescription>{stat.region || "Finland"}</CardDescription>
                     <CardTitle className="text-base leading-snug">
-                      {group.indicator_name}
+                      {shortName(stat.indicator_name)}
                     </CardTitle>
-                    <CardDescription>{group.region || "Finland"}</CardDescription>
                   </CardHeader>
 
-                  <CardContent>
+                  <CardContent className="pt-0">
                     <div className="text-3xl font-bold">
-                      {latestWithValue ? formatValue(latestWithValue.value) : "N/A"}
+                      {formatValue(stat.latestValue)}
                     </div>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      Latest year: {latestWithValue ? latestWithValue.year : "N/A"}
+                      Latest year: {stat.latestYear ?? "N/A"}
                     </p>
                   </CardContent>
                 </Card>
@@ -169,15 +208,40 @@ export default function PopulationData() {
           </div>
 
           <Card>
-            <CardHeader>
-              <CardTitle>
-                {selectedIndicator?.indicator_name || "Trend"}
-              </CardTitle>
-              <CardDescription>Year-by-year national average</CardDescription>
+            <CardHeader className="pb-4">
+              <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                <div>
+                  <CardTitle>{shortName(selectedIndicator?.indicator_name || "Indicator")}</CardTitle>
+                  <CardDescription>
+                    National trend over time
+                  </CardDescription>
+                </div>
+
+                <div className="w-full md:w-[320px]">
+                  <Select
+                    value={selectedIndicatorId ? String(selectedIndicatorId) : undefined}
+                    onValueChange={(value) => setSelectedIndicatorId(Number(value))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select indicator" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {groupedIndicators.map((group) => (
+                        <SelectItem
+                          key={group.indicator_id}
+                          value={String(group.indicator_id)}
+                        >
+                          {shortName(group.indicator_name)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </CardHeader>
 
             <CardContent>
-              <div className="h-[320px]">
+              <div className="h-[260px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
@@ -187,9 +251,7 @@ export default function PopulationData() {
                     />
                     <YAxis tick={{ fill: "hsl(var(--muted-foreground))" }} />
                     <Tooltip
-                      formatter={(value: number | null) =>
-                        value === null ? "N/A" : value.toFixed(1)
-                      }
+                      formatter={(value: number) => value.toFixed(1)}
                       contentStyle={{
                         backgroundColor: "hsl(var(--card))",
                         border: "1px solid hsl(var(--border))",
@@ -200,9 +262,8 @@ export default function PopulationData() {
                       type="monotone"
                       dataKey="value"
                       stroke="hsl(var(--primary))"
-                      strokeWidth={2}
-                      dot
-                      connectNulls={false}
+                      strokeWidth={2.5}
+                      dot={{ r: 3 }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -211,22 +272,27 @@ export default function PopulationData() {
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle>Selected Indicator Data</CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle>Yearly values</CardTitle>
               <CardDescription>
-                Clean yearly values for the selected metric
+                Selected indicator, cleaned for quick comparison
               </CardDescription>
             </CardHeader>
 
             <CardContent>
-              <div className="space-y-2">
-                {selectedIndicator?.rows.map((row) => (
+              <div className="overflow-hidden rounded-lg border">
+                <div className="grid grid-cols-2 bg-muted/40 px-4 py-3 text-sm font-medium">
+                  <div>Year</div>
+                  <div className="text-right">Value</div>
+                </div>
+
+                {tableRows.map((row) => (
                   <div
                     key={`${row.indicator_id}-${row.year}`}
-                    className="flex items-center justify-between rounded-lg border px-4 py-3"
+                    className="grid grid-cols-2 border-t px-4 py-3 text-sm"
                   >
-                    <div className="font-medium">{row.year}</div>
-                    <div className="text-sm text-muted-foreground">
+                    <div>{row.year}</div>
+                    <div className="text-right text-muted-foreground">
                       {formatValue(row.value)}
                     </div>
                   </div>
@@ -235,12 +301,16 @@ export default function PopulationData() {
             </CardContent>
           </Card>
 
-          <p className="text-xs text-muted-foreground">
-            Data source: Sotkanet Statistics and Indicator Bank, maintained by the
-            Finnish Institute for Health and Welfare (THL). These public Finnish
-            population-level indicators are shown for contextual reference and do
-            not represent clinical diagnosis.
-          </p>
+          <Card className="bg-muted/30">
+            <CardContent className="pt-6">
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                Data source: Sotkanet Statistics and Indicator Bank, maintained by the
+                Finnish Institute for Health and Welfare (THL). These public Finnish
+                population-level indicators are shown for contextual reference and do
+                not represent clinical diagnosis.
+              </p>
+            </CardContent>
+          </Card>
         </>
       )}
     </div>
