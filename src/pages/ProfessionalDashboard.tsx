@@ -1,23 +1,74 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, FileText, TrendingUp, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+
+const API_URL = "http://127.0.0.1:8000";
 
 export default function ProfessionalDashboard() {
   const navigate = useNavigate();
 
+  const [patientCount, setPatientCount] = useState(0);
+  const [noteCount, setNoteCount] = useState(0);
+
+  const fetchStats = async () => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+
+    try {
+      const res = await fetch(`${API_URL}/patients`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) return;
+
+      setPatientCount(data.length);
+
+      let totalNotes = 0;
+
+      for (const patient of data) {
+        const notesRes = await fetch(
+          `${API_URL}/patients/${patient.id}/treatment-notes`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const notes = await notesRes.json();
+
+        if (notesRes.ok) {
+          totalNotes += notes.length;
+        }
+      }
+
+      setNoteCount(totalNotes);
+    } catch (error) {
+      console.error("Failed to fetch dashboard stats:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
   const stats = [
     {
       label: "Active Patients",
-      value: 0,
+      value: patientCount,
       icon: Users,
       onClick: () => navigate("/professional/patients"),
       clickable: true,
     },
     {
       label: "Treatment Notes",
-      value: 0,
+      value: noteCount,
       icon: FileText,
-      onClick: undefined,
       clickable: false,
     },
     {
@@ -31,7 +82,6 @@ export default function ProfessionalDashboard() {
       label: "Alerts",
       value: 0,
       icon: AlertTriangle,
-      onClick: undefined,
       clickable: false,
     },
   ];

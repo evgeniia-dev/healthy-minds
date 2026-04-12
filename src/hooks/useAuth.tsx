@@ -40,15 +40,19 @@ function getStoredUser(): UserProfile | null {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(() => getStoredUser());
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const loadCurrentUser = async () => {
     const token = localStorage.getItem("access_token");
+    const storedUser = getStoredUser();
 
     if (!token) {
       setUser(null);
-      setLoading(false);
       return;
+    }
+
+    if (storedUser) {
+      setUser(storedUser);
     }
 
     try {
@@ -59,10 +63,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (!response.ok) {
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("current_user");
-        setUser(null);
-        setLoading(false);
+        if (!storedUser) {
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("current_user");
+          setUser(null);
+        }
         return;
       }
 
@@ -80,10 +85,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(normalizedUser);
     } catch (error) {
       console.error("Failed to load current user:", error);
-      setUser(getStoredUser());
+      if (storedUser) {
+        setUser(storedUser);
+      }
     }
-
-    setLoading(false);
   };
 
   useEffect(() => {

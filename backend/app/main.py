@@ -2,6 +2,8 @@ from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes.auth import router as auth_router
 from app.routes.patients import router as patients_router
+from app.routes.patient_detail import router as patient_detail_router
+from app.routes.mood import router as mood_router
 from app.db.session import Base, engine
 from app.sotkanet import fetch_sotkanet_averages
 
@@ -40,3 +42,5 @@ def get_sotkanet_data(
 
 app.include_router(auth_router)
 app.include_router(patients_router)
+app.include_router(patient_detail_router)
+app.include_router(mood_router)
