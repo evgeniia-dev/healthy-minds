@@ -24,7 +24,6 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 
 const patientItems = [
   { title: "Dashboard", url: "/patient/dashboard", icon: LayoutDashboard },
@@ -45,22 +44,20 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const navigate = useNavigate();
-  const { role, profile, signOut } = useAuth();
+  const { role, profile, signOut, loading } = useAuth();
 
-  const items = role === "professional" ? professionalItems : patientItems;
+  const items =
+    role === "professional"
+      ? professionalItems
+      : role === "patient"
+      ? patientItems
+      : [];
 
-  const isActive = (path: string) =>
-    location.pathname === path || location.pathname.startsWith(`${path}/`);
+  const isActive = (path: string) => location.pathname === path;
 
   const handleLogout = async () => {
-    try {
-      await signOut();
-      toast.success("Logged out");
-      navigate("/", { replace: true });
-    } catch (error) {
-      console.error("Logout failed:", error);
-      toast.error("Failed to log out");
-    }
+    await signOut();
+    navigate("/", { replace: true });
   };
 
   return (
@@ -78,21 +75,22 @@ export function AppSidebar() {
 
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                    <NavLink
-                      to={item.url}
-                      end={item.url === "/settings"}
-                      className="hover:bg-accent"
-                      activeClassName="bg-accent text-accent-foreground font-medium"
-                    >
-                      <item.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {!loading &&
+                items.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                      <NavLink
+                        to={item.url}
+                        end
+                        className="hover:bg-accent"
+                        activeClassName="bg-accent text-accent-foreground font-medium"
+                      >
+                        <item.icon className="mr-2 h-4 w-4" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

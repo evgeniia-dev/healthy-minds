@@ -1,68 +1,38 @@
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, FileText, TrendingUp, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function ProfessionalDashboard() {
-  const { user } = useAuth();
   const navigate = useNavigate();
-  const [patientCount, setPatientCount] = useState(0);
-  const [noteCount, setNoteCount] = useState(0);
-
-  useEffect(() => {
-    if (!user) return;
-
-    supabase
-      .from("patient_professional_links")
-      .select("id", { count: "exact", head: true })
-      .eq("professional_id", user.id)
-      .then(({ count, error }) => {
-        if (error) {
-          console.error("Failed to fetch patient count:", error);
-          return;
-        }
-        setPatientCount(count ?? 0);
-      });
-
-    supabase
-      .from("treatment_notes")
-      .select("id", { count: "exact", head: true })
-      .eq("professional_id", user.id)
-      .then(({ count, error }) => {
-        if (error) {
-          console.error("Failed to fetch note count:", error);
-          return;
-        }
-        setNoteCount(count ?? 0);
-      });
-  }, [user]);
 
   const stats = [
     {
       label: "Active Patients",
-      value: patientCount,
+      value: 0,
       icon: Users,
       onClick: () => navigate("/professional/patients"),
+      clickable: true,
     },
     {
       label: "Treatment Notes",
-      value: noteCount,
+      value: 0,
       icon: FileText,
-      onClick: () => navigate("/professional/patients"),
+      onClick: undefined,
+      clickable: false,
     },
     {
       label: "Population Data",
       value: "View",
       icon: TrendingUp,
       onClick: () => navigate("/population"),
+      clickable: true,
     },
     {
       label: "Alerts",
       value: 0,
       icon: AlertTriangle,
-      onClick: () => {},
+      onClick: undefined,
+      clickable: false,
     },
   ];
 
@@ -81,7 +51,11 @@ export default function ProfessionalDashboard() {
         {stats.map((stat) => (
           <Card
             key={stat.label}
-            className="cursor-pointer transition-colors hover:bg-accent/50"
+            className={
+              stat.clickable
+                ? "cursor-pointer transition-colors hover:bg-accent/50"
+                : "opacity-90"
+            }
             onClick={stat.onClick}
           >
             <CardHeader className="flex flex-row items-center justify-between pb-2">

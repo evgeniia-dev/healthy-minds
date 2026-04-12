@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,14 +23,14 @@ import { toast } from "sonner";
 import { UserPlus, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+const API_URL = "http://127.0.0.1:8000";
+
 type PatientRow = {
-  patient_id: string;
+  id: string;
+  email: string;
+  full_name: string | null;
+  avatar_url: string | null;
   created_at: string;
-  profile?: {
-    user_id: string;
-    full_name: string | null;
-    avatar_url: string | null;
-  };
 };
 
 export default function Patients() {
@@ -43,99 +42,86 @@ export default function Patients() {
   const [open, setOpen] = useState(false);
   const [newEmail, setNewEmail] = useState("");
   const [newName, setNewName] = useState("");
+  const [newPassword, setNewPassword] = useState("");
 
   const fetchPatients = async () => {
-    if (!user) return;
+    const token = localStorage.getItem("access_token");
 
-    const { data: links, error: linksError } = await supabase
-      .from("patient_professional_links")
-      .select("patient_id, created_at")
-      .eq("professional_id", user.id);
+    if (!token) {
+      toast.error("You are not authenticated");
+      return;
+    }
 
-    if (linksError) {
-      console.error("Failed to fetch patient links:", linksError);
+    try {
+      const response = await fetch(`${API_URL}/patients`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.detail || "Failed to load patients");
+        return;
+      }
+
+      setPatients(data);
+    } catch (error) {
+      console.error("Failed to fetch patients:", error);
       toast.error("Failed to load patients");
-      return;
     }
-
-    if (!links || links.length === 0) {
-      setPatients([]);
-      return;
-    }
-
-    const patientIds = links.map((link) => link.patient_id);
-
-    const { data: profiles, error: profilesError } = await supabase
-      .from("profiles")
-      .select("user_id, full_name, avatar_url")
-      .in("user_id", patientIds);
-
-    if (profilesError) {
-      console.error("Failed to fetch patient profiles:", profilesError);
-      toast.error("Failed to load patient profiles");
-      return;
-    }
-
-    const mergedPatients: PatientRow[] = links.map((link) => ({
-      ...link,
-      profile: profiles?.find((profile) => profile.user_id === link.patient_id),
-    }));
-
-    setPatients(mergedPatients);
   };
 
   useEffect(() => {
-    void fetchPatients();
+    if (user) {
+      void fetchPatients();
+    }
   }, [user]);
 
   const handleAddPatient = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!user) return;
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      toast.error("You are not authenticated");
+      return;
+    }
 
     setLoading(true);
 
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const response = await fetch(`${API_URL}/patients`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          email: newEmail,
+          password: newPassword,
+          full_name: newName,
+        }),
+      });
 
-      if (!session?.access_token) {
-        toast.error("You are not authenticated");
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.detail || "Failed to create patient");
         setLoading(false);
         return;
       }
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-patient`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({
-            email: newEmail,
-            full_name: newName,
-          }),
-        }
-      );
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        toast.error(result.error || "Failed to invite patient");
-      } else {
-        toast.success(`Invitation sent to ${newEmail}`);
-        setOpen(false);
-        setNewEmail("");
-        setNewName("");
-        await fetchPatients();
-      }
-    } catch (error: any) {
+      toast.success(`Patient ${newName} created`);
+      setOpen(false);
+      setNewEmail("");
+      setNewName("");
+      setNewPassword("");
+      await fetchPatients();
+    } catch (error) {
       console.error("Create patient failed:", error);
-      toast.error(error.message || "Unexpected error");
+      toast.error("Unexpected error");
     }
 
     setLoading(false);
@@ -156,7 +142,7 @@ export default function Patients() {
 
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Invite New Patient</DialogTitle>
+              <DialogTitle>Add New Patient</DialogTitle>
             </DialogHeader>
 
             <form onSubmit={handleAddPatient} className="space-y-4">
@@ -181,12 +167,20 @@ export default function Patients() {
                 />
               </div>
 
-              <p className="text-sm text-muted-foreground">
-                The patient will receive an email invitation to join the platform.
-              </p>
+              <div className="space-y-2">
+                <Label htmlFor="patient-password">Temporary Password</Label>
+                <Input
+                  id="patient-password"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
+              </div>
 
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Sending invite..." : "Send Invitation"}
+                {loading ? "Creating..." : "Create Patient"}
               </Button>
             </form>
           </DialogContent>
@@ -199,6 +193,7 @@ export default function Patients() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
                 <TableHead>Added</TableHead>
                 <TableHead className="w-[100px]">Actions</TableHead>
               </TableRow>
@@ -208,29 +203,30 @@ export default function Patients() {
               {patients.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={3}
+                    colSpan={4}
                     className="py-8 text-center text-muted-foreground"
                   >
-                    No patients yet. Click &quot;Add Patient&quot; to get started.
+                    No patients yet. Click "Add Patient" to get started.
                   </TableCell>
                 </TableRow>
               ) : (
                 patients.map((patient) => (
-                  <TableRow key={patient.patient_id}>
+                  <TableRow key={patient.id}>
                     <TableCell className="font-medium">
-                      {patient.profile?.full_name || "Unknown"}
+                      {patient.full_name || "Unknown"}
                     </TableCell>
-
+                    <TableCell className="text-muted-foreground">
+                      {patient.email}
+                    </TableCell>
                     <TableCell className="text-muted-foreground">
                       {new Date(patient.created_at).toLocaleDateString()}
                     </TableCell>
-
                     <TableCell>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() =>
-                          navigate(`/professional/patients/${patient.patient_id}`)
+                          navigate(`/professional/patients/${patient.id}`)
                         }
                       >
                         <Eye className="h-4 w-4" />

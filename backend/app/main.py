@@ -1,25 +1,27 @@
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
+from app.routes.auth import router as auth_router
+from app.routes.patients import router as patients_router
+from app.db.session import Base, engine
 from app.sotkanet import fetch_sotkanet_averages
 
 app = FastAPI(title="Healthy Minds API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:8090",
-        "http://127.0.0.1:8090",
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+@app.on_event("startup")
+def startup():
+    Base.metadata.create_all(bind=engine)
 
 @app.get("/health")
 def health():
     return {"status": "ok"}
-
 
 @app.get("/api/sotkanet")
 def get_sotkanet_data(
@@ -35,3 +37,6 @@ def get_sotkanet_data(
         "count": len(data),
         "data": data,
     }
+
+app.include_router(auth_router)
+app.include_router(patients_router)

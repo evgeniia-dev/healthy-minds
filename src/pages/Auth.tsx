@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,12 +13,19 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Brain } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+
+const API_URL = "http://127.0.0.1:8000";
+
+type StoredUser = {
+  id: string;
+  email: string;
+  full_name: string | null;
+  avatar_url?: string | null;
+  role: "patient" | "professional";
+};
 
 export default function Auth() {
   const navigate = useNavigate();
-  const { user, role: userRole, loading: authLoading } = useAuth();
-
   const [loading, setLoading] = useState(false);
 
   const [loginEmail, setLoginEmail] = useState("");
@@ -29,31 +35,66 @@ export default function Auth() {
   const [signupPassword, setSignupPassword] = useState("");
   const [fullName, setFullName] = useState("");
 
-  if (!authLoading && user && userRole === "patient") {
+  const token = localStorage.getItem("access_token");
+  const storedUserRaw = localStorage.getItem("current_user");
+
+  let storedUser: StoredUser | null = null;
+  try {
+    storedUser = storedUserRaw ? JSON.parse(storedUserRaw) : null;
+  } catch {
+    storedUser = null;
+  }
+
+  if (token && storedUser?.role === "professional") {
+    return <Navigate to="/professional/dashboard" replace />;
+  }
+
+  if (token && storedUser?.role === "patient") {
     return <Navigate to="/patient/dashboard" replace />;
   }
 
-  if (!authLoading && user && userRole === "professional") {
-    return <Navigate to="/professional/dashboard" replace />;
-  }
+  const goToDashboard = (role: "patient" | "professional") => {
+    if (role === "professional") {
+      navigate("/professional/dashboard");
+      return;
+    }
+    navigate("/patient/dashboard");
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email: loginEmail,
-      password: loginPassword,
-    });
+    try {
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: loginEmail,
+          password: loginPassword,
+        }),
+      });
 
-    if (error) {
-      toast.error(error.message);
-      setLoading(false);
-      return;
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.detail || data.error || "Login failed");
+        setLoading(false);
+        return;
+      }
+
+      localStorage.setItem("access_token", data.access_token);
+      localStorage.setItem("current_user", JSON.stringify(data.user));
+
+      toast.success("Logged in successfully");
+      goToDashboard(data.user.role);
+    } catch (error: any) {
+      console.error("Login error:", error);
+      toast.error(error.message || "Login failed");
     }
 
-    toast.success("Logged in successfully");
-    navigate("/");
     setLoading(false);
   };
 
@@ -62,49 +103,41 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email: signupEmail,
-        password: signupPassword,
-        options: {
-          data: {
-            full_name: fullName,
-            role: "professional",
-          },
-          emailRedirectTo: `${window.location.origin}/auth`,
+      const response = await fetch(`${API_URL}/auth/signup/professional`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify({
+          email: signupEmail,
+          password: signupPassword,
+          full_name: fullName,
+        }),
       });
 
-      if (error) {
-        toast.error(error.message);
-      } else if (data.user && !data.session) {
-        toast.success("Account created. Check your email for confirmation.");
-      } else {
-        toast.success("Professional account created successfully.");
-        navigate("/");
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.detail || data.error || "Signup failed");
+        setLoading(false);
+        return;
       }
-    } catch (error) {
+
+      localStorage.setItem("access_token", data.access_token);
+      localStorage.setItem("current_user", JSON.stringify(data.user));
+
+      toast.success("Professional account created");
+      goToDashboard(data.user.role);
+    } catch (error: any) {
       console.error("Signup error:", error);
-      toast.error("Something went wrong during signup.");
+      toast.error(error.message || "Signup failed");
     }
 
     setLoading(false);
   };
 
-  const handleForgotPassword = async () => {
-    if (!loginEmail) {
-      toast.error("Please enter your email address first.");
-      return;
-    }
-
-    const { error } = await supabase.auth.resetPasswordForEmail(loginEmail, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success("Password reset email sent.");
-    }
+  const handleForgotPassword = () => {
+    toast.info("Password reset is not implemented yet.");
   };
 
   return (

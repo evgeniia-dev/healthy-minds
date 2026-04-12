@@ -1,19 +1,19 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import type { User } from "@supabase/supabase-js";
-import type { Database } from "@/integrations/supabase/types";
 
-type AppRole = Database["public"]["Enums"]["app_role"];
+type AppRole = "patient" | "professional";
 
 type UserProfile = {
+  id: string;
+  email: string;
   full_name: string | null;
   avatar_url: string | null;
+  role: AppRole;
 };
 
 interface AuthContextType {
-  user: User | null;
+  user: UserProfile | null;
   role: AppRole | null;
-  profile: UserProfile | null;
+  profile: { full_name: string | null; avatar_url: string | null } | null;
   loading: boolean;
   signOut: () => Promise<void>;
 }
@@ -26,83 +26,91 @@ const AuthContext = createContext<AuthContextType>({
   signOut: async () => {},
 });
 
+const API_URL = "http://127.0.0.1:8000";
+
+function getStoredUser(): UserProfile | null {
+  try {
+    const raw = localStorage.getItem("current_user");
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [role, setRole] = useState<AppRole | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(() => getStoredUser());
   const [loading, setLoading] = useState(true);
 
-  const fetchUserData = async (userId: string) => {
-    const [profileRes, roleRes] = await Promise.all([
-      supabase
-        .from("profiles")
-        .select("full_name, avatar_url")
-        .eq("user_id", userId)
-        .maybeSingle(),
-      supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .maybeSingle(),
-    ]);
+  const loadCurrentUser = async () => {
+    const token = localStorage.getItem("access_token");
 
-    if (profileRes.error) {
-      console.error("Failed to fetch profile:", profileRes.error);
+    if (!token) {
+      setUser(null);
+      setLoading(false);
+      return;
     }
 
-    if (roleRes.error) {
-      console.error("Failed to fetch role:", roleRes.error);
+    try {
+      const response = await fetch(`${API_URL}/auth/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("current_user");
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
+      const data = await response.json();
+
+      const normalizedUser: UserProfile = {
+        id: data.id,
+        email: data.email,
+        full_name: data.full_name,
+        avatar_url: data.avatar_url ?? null,
+        role: data.role,
+      };
+
+      localStorage.setItem("current_user", JSON.stringify(normalizedUser));
+      setUser(normalizedUser);
+    } catch (error) {
+      console.error("Failed to load current user:", error);
+      setUser(getStoredUser());
     }
 
-    setProfile(profileRes.data ?? null);
-    setRole(roleRes.data?.role ?? null);
+    setLoading(false);
   };
 
   useEffect(() => {
-    const handleSession = async (
-      session: Awaited<ReturnType<typeof supabase.auth.getSession>>["data"]["session"]
-    ) => {
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
-
-      if (currentUser) {
-        await fetchUserData(currentUser.id);
-      } else {
-        setProfile(null);
-        setRole(null);
-      }
-
-      setLoading(false);
-    };
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      void handleSession(session);
-    });
-
-    void supabase.auth.getSession().then(({ data: { session } }) => {
-      void handleSession(session);
-    });
-
-    return () => subscription.unsubscribe();
+    void loadCurrentUser();
   }, []);
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-
-    if (error) {
-      console.error("Sign out failed:", error);
-      throw error;
-    }
-
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("current_user");
     setUser(null);
-    setProfile(null);
-    setRole(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, role, profile, loading, signOut }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        role: user?.role ?? null,
+        profile: user
+          ? {
+              full_name: user.full_name,
+              avatar_url: user.avatar_url,
+            }
+          : null,
+        loading,
+        signOut,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
