@@ -13,6 +13,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Brain } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
@@ -26,6 +27,7 @@ type StoredUser = {
 
 export default function Auth() {
   const navigate = useNavigate();
+  const { refreshUser } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const [loginEmail, setLoginEmail] = useState("");
@@ -88,6 +90,8 @@ export default function Auth() {
       localStorage.setItem("access_token", data.access_token);
       localStorage.setItem("current_user", JSON.stringify(data.user));
 
+      await refreshUser();
+
       toast.success("Logged in successfully");
       goToDashboard(data.user.role);
     } catch (error: any) {
@@ -125,6 +129,8 @@ export default function Auth() {
 
       localStorage.setItem("access_token", data.access_token);
       localStorage.setItem("current_user", JSON.stringify(data.user));
+
+      await refreshUser();
 
       toast.success("Professional account created");
       goToDashboard(data.user.role);

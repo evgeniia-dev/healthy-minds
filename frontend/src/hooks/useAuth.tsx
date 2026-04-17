@@ -16,6 +16,7 @@ interface AuthContextType {
   profile: { full_name: string | null; avatar_url: string | null } | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -24,6 +25,7 @@ const AuthContext = createContext<AuthContextType>({
   profile: null,
   loading: true,
   signOut: async () => {},
+  refreshUser: async () => {},
 });
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
@@ -40,14 +42,17 @@ function getStoredUser(): UserProfile | null {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(() => getStoredUser());
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const loadCurrentUser = async () => {
+    setLoading(true);
+
     const token = localStorage.getItem("access_token");
     const storedUser = getStoredUser();
 
     if (!token) {
       setUser(null);
+      setLoading(false);
       return;
     }
 
@@ -63,11 +68,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (!response.ok) {
-        if (!storedUser) {
-          localStorage.removeItem("access_token");
-          localStorage.removeItem("current_user");
-          setUser(null);
-        }
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("current_user");
+        setUser(null);
+        setLoading(false);
         return;
       }
 
@@ -85,10 +89,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(normalizedUser);
     } catch (error) {
       console.error("Failed to load current user:", error);
+
       if (storedUser) {
         setUser(storedUser);
+      } else {
+        setUser(null);
       }
     }
+
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -114,6 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           : null,
         loading,
         signOut,
+        refreshUser: loadCurrentUser,
       }}
     >
       {children}
