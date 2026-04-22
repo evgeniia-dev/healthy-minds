@@ -23,7 +23,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   role: null,
   profile: null,
-  loading: true,
+  loading: false,
   signOut: async () => {},
   refreshUser: async () => {},
 });
@@ -42,11 +42,9 @@ function getStoredUser(): UserProfile | null {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(() => getStoredUser());
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const loadCurrentUser = async () => {
-    setLoading(true);
-
     const token = localStorage.getItem("access_token");
     const storedUser = getStoredUser();
 
@@ -56,8 +54,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    if (storedUser) {
+    if (!storedUser) {
+      setLoading(true);
+    } else {
       setUser(storedUser);
+      setLoading(false);
     }
 
     try {
