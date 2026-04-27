@@ -154,9 +154,7 @@ export default function Auth() {
             <Brain className="h-8 w-8 text-primary-foreground" />
           </div>
           <h1 className="text-3xl font-bold text-foreground">Healthy Minds</h1>
-          <p className="mt-2 text-muted-foreground">
-            Mental Health Prediction Platform
-          </p>
+          <p className="mt-2 text-muted-foreground font-mainpage-secondary">Mental Health Prediction Platform</p>
         </div>
 
         <Card>

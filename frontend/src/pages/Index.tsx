@@ -85,9 +85,7 @@ export default function Index() {
 
         <div className="relative mx-auto max-w-6xl px-6 py-32 md:py-44">
           <div className="max-w-xl">
-            <h1 className="text-4xl font-bold leading-tight tracking-tight text-background md:text-5xl lg:text-6xl">
-              Healthy Minds
-            </h1>
+            <h1 className="text-4xl font-bold font mainpage-primary leading-tight tracking-tight text-background md:text-5xl lg:text-6xl">Healthy Minds</h1>
 
             <p className="mt-4 text-lg leading-relaxed text-background/85 md:text-xl">
               A supportive platform for tracking mental wellbeing and helping
@@ -125,7 +123,7 @@ export default function Index() {
           <h2 className="text-center text-3xl font-bold text-foreground md:text-4xl">
             How We Help
           </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-center text-lg text-muted-foreground">
+          <p className="mx-auto mt-3 max-w-2xl text-center text-lg text-muted-foreground font-mainpage-secondary">
             Tools designed to support a clearer view of mental wellbeing over time.
           </p>
 
