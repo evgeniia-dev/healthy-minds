@@ -7,13 +7,14 @@ from app.schemas.auth import ProfessionalSignupRequest, LoginRequest
 from app.core.security import hash_password, verify_password, create_access_token
 from app.dependencies import get_current_user
 
+# Authentication endpoint router for user signup, login, and profile management
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-
+# Pydantic Data Model for request and response models to define structure and validation of data that the API will accept and return 
 class UpdateMeRequest(BaseModel):
     full_name: str | None = None
 
-
+# Endpoint for professional user signup, which checks for existing email, creates a new user, and returns an access token along with user details
 @router.post("/signup/professional")
 def signup_professional(payload: ProfessionalSignupRequest, db: Session = Depends(get_db)):
     existing_user = db.query(User).filter(User.email == payload.email).first()
@@ -49,7 +50,7 @@ def signup_professional(payload: ProfessionalSignupRequest, db: Session = Depend
         },
     }
 
-
+# Endpoint for user login, which verifies credentials and returns an access token along with user details if successful
 @router.post("/login")
 def login(payload: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == payload.email).first()
@@ -73,7 +74,7 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
         },
     }
 
-
+# Endpoint to get the current authenticated user's profile information, which requires a valid access token and returns user details
 @router.get("/me")
 def get_me(current_user: User = Depends(get_current_user)):
     return {
@@ -85,6 +86,7 @@ def get_me(current_user: User = Depends(get_current_user)):
     }
 
 
+# Endpoint to update the current authenticated user's profile information, which allows updating the full name and requires a valid access token
 @router.patch("/me")
 def update_me(
     payload: UpdateMeRequest,
