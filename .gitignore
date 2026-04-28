@@ -24,12 +24,16 @@ frontend/dist-ssr
 
 # Backend
 backend/venv
-backend/__pycache__
+backend/*/__pycache__
 
 # Python
 __pycache__
 *.pyc
 .venv
+.pytest_cache
+.hypothesis
+.tox
+.nox
 
 # Editor directories and files
 .vscode/*
