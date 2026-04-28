@@ -3,16 +3,13 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.models.user import User
-from app.schemas.auth import ProfessionalSignupRequest, LoginRequest
+from app.schemas.auth import ProfessionalSignupRequest, LoginRequest, UpdateMeRequest
 from app.core.security import hash_password, verify_password, create_access_token
 from app.dependencies import get_current_user
 
 # Authentication endpoint router for user signup, login, and profile management
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-# Pydantic Data Model for request and response models to define structure and validation of data that the API will accept and return 
-class UpdateMeRequest(BaseModel):
-    full_name: str | None = None
 
 # Endpoint for professional user signup, which checks for existing email, creates a new user, and returns an access token along with user details
 @router.post("/signup/professional")
