@@ -6,8 +6,18 @@ from app.routes.patient_detail import router as patient_detail_router
 from app.routes.mood import router as mood_router
 from app.db.session import Base, engine
 from app.sotkanet import fetch_sotkanet_averages
+from contextlib import asynccontextmanager
 
-app = FastAPI(title="Healthy Minds API")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # startup
+    Base.metadata.create_all(bind=engine)
+    yield
+    # shutdown (no-op)
+
+
+app = FastAPI(title="Healthy Minds API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -16,10 +26,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-@app.on_event("startup")
-def startup():
-    Base.metadata.create_all(bind=engine)
 
 @app.get("/health")
 def health():
