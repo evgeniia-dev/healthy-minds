@@ -15,7 +15,7 @@ import { toast } from "sonner";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
-const moodEmojis = ["", "😞", "😔", "😟", "😕", "😐", "🙂", "😊", "😄", "😁", "🤩"];
+const moodEmojis = ["", "", "", "", "", "", "", "", "", "", ""];
 
 export function DailyCheckin({ onSuccess }: { onSuccess?: () => void }) {
   const [moodScore, setMoodScore] = useState(5);
