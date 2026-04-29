@@ -56,7 +56,7 @@ export function CorrelationHeatmap({ entries }: { entries: MoodEntry[] }) {
     <Card>
       <CardHeader>
         <CardTitle>Correlation Matrix</CardTitle>
-        <CardDescription>How your behavioral factors relate to each other</CardDescription>
+        <CardDescription>How your behavioral factors relate to each other. Positive values show factors improving together, while negative values show one factor worsening when another improves.</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid gap-1" style={{ gridTemplateColumns: `80px repeat(${factors.length}, 1fr)` }}>
