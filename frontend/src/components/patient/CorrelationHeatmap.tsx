@@ -1,6 +1,16 @@
 import { useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface MoodEntry {
   mood_score: number;
@@ -11,18 +21,29 @@ interface MoodEntry {
 
 function pearsonCorrelation(x: number[], y: number[]): number {
   const n = x.length;
-  if (n < 3) return 0;
+
+  if (n < 3) {
+    return 0;
+  }
+
   const meanX = x.reduce((a, b) => a + b, 0) / n;
   const meanY = y.reduce((a, b) => a + b, 0) / n;
-  let num = 0, denX = 0, denY = 0;
+
+  let num = 0;
+  let denX = 0;
+  let denY = 0;
+
   for (let i = 0; i < n; i++) {
     const dx = x[i] - meanX;
     const dy = y[i] - meanY;
+
     num += dx * dy;
     denX += dx * dx;
     denY += dy * dy;
   }
+
   const den = Math.sqrt(denX * denY);
+
   return den === 0 ? 0 : num / den;
 }
 
@@ -33,59 +54,97 @@ function getCorrelationColor(r: number): string {
   if (r > 0.2) return "bg-emerald-300 text-foreground";
   if (r > -0.2) return "bg-muted text-muted-foreground";
   if (r > -0.5) return "bg-orange-300 text-foreground";
+
   return "bg-red-500 text-white";
 }
 
 export function CorrelationHeatmap({ entries }: { entries: MoodEntry[] }) {
   const matrix = useMemo(() => {
     const valid = entries.filter(
-      (e) => e.sleep_hours != null && e.stress_level != null && e.exercise_minutes != null
+      (entry) =>
+        entry.sleep_hours != null &&
+        entry.stress_level != null &&
+        entry.exercise_minutes != null
     );
+
     const vectors = [
-      valid.map((e) => e.mood_score),
-      valid.map((e) => e.sleep_hours!),
-      valid.map((e) => e.stress_level!),
-      valid.map((e) => e.exercise_minutes!),
+      valid.map((entry) => entry.mood_score),
+      valid.map((entry) => entry.sleep_hours!),
+      valid.map((entry) => entry.stress_level!),
+      valid.map((entry) => entry.exercise_minutes!),
     ];
+
     return factors.map((_, i) =>
-      factors.map((_, j) => (i === j ? 1 : pearsonCorrelation(vectors[i], vectors[j])))
+      factors.map((_, j) =>
+        i === j ? 1 : pearsonCorrelation(vectors[i], vectors[j])
+      )
     );
   }, [entries]);
 
   return (
-    <Card>
+    <Card className="w-full overflow-hidden">
       <CardHeader>
         <CardTitle>Correlation Matrix</CardTitle>
-        <CardDescription>How your behavioral factors relate to each other</CardDescription>
+        <CardDescription>
+          How your mood, sleep, stress, and exercise patterns relate to each
+          other
+        </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="grid gap-1" style={{ gridTemplateColumns: `80px repeat(${factors.length}, 1fr)` }}>
-          <div />
-          {factors.map((f) => (
-            <div key={f} className="text-center text-xs font-medium text-muted-foreground p-2">{f}</div>
-          ))}
-          {factors.map((row, i) => (
-            <>
-              <div key={`label-${row}`} className="flex items-center text-xs font-medium text-muted-foreground pr-2">{row}</div>
-              {factors.map((col, j) => {
-                const r = matrix[i][j];
-                return (
-                  <Tooltip key={`${row}-${col}`}>
-                    <TooltipTrigger asChild>
-                      <div className={`aspect-square rounded-md flex items-center justify-center text-xs font-medium cursor-default ${getCorrelationColor(r)}`}>
-                        {r.toFixed(2)}
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{row} ↔ {col}: {r.toFixed(3)}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                );
-              })}
-            </>
-          ))}
+
+      <CardContent className="space-y-4">
+        <div className="w-full overflow-x-auto pb-2">
+          <div
+            className="grid min-w-[360px] gap-1 sm:min-w-0"
+            style={{
+              gridTemplateColumns: `64px repeat(${factors.length}, minmax(52px, 1fr))`,
+            }}
+          >
+            <div />
+
+            {factors.map((factor) => (
+              <div
+                key={factor}
+                className="flex items-center justify-center p-1 text-center text-[10px] font-medium text-muted-foreground sm:p-2 sm:text-xs"
+              >
+                {factor}
+              </div>
+            ))}
+
+            {factors.map((row, i) => (
+              <div key={row} className="contents">
+                <div className="flex items-center pr-1 text-[10px] font-medium text-muted-foreground sm:pr-2 sm:text-xs">
+                  {row}
+                </div>
+
+                {factors.map((col, j) => {
+                  const r = matrix[i][j];
+
+                  return (
+                    <Tooltip key={`${row}-${col}`}>
+                      <TooltipTrigger asChild>
+                        <div
+                          className={`flex aspect-square min-h-12 items-center justify-center rounded-md text-[10px] font-medium sm:text-xs ${getCorrelationColor(
+                            r
+                          )}`}
+                        >
+                          {r.toFixed(2)}
+                        </div>
+                      </TooltipTrigger>
+
+                      <TooltipContent>
+                        <p>
+                          {row} ↔ {col}: {r.toFixed(3)}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="mt-4 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+
+        <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-muted-foreground">
           <span>Strong −</span>
           <div className="h-3 w-3 rounded-sm bg-red-500" />
           <div className="h-3 w-3 rounded-sm bg-orange-300" />
