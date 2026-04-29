@@ -1,6 +1,16 @@
 import { useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface MoodEntry {
   mood_score: number;
@@ -37,7 +47,12 @@ function pearsonCorrelation(x: number[], y: number[]): number {
   return den === 0 ? 0 : num / den;
 }
 
-const factors = ["Mood", "Sleep", "Stress", "Exercise"];
+const factors = [
+  { full: "Mood", short: "Mood" },
+  { full: "Sleep", short: "Sleep" },
+  { full: "Stress", short: "Stress" },
+  { full: "Exercise", short: "Ex." },
+];
 
 function getCorrelationColor(r: number): string {
   if (r > 0.5) return "bg-emerald-500 text-white";
@@ -51,7 +66,10 @@ function getCorrelationColor(r: number): string {
 export function CorrelationHeatmap({ entries }: { entries: MoodEntry[] }) {
   const matrix = useMemo(() => {
     const valid = entries.filter(
-      (e) => e.sleep_hours != null && e.stress_level != null && e.exercise_minutes != null
+      (entry) =>
+        entry.sleep_hours != null &&
+        entry.stress_level != null &&
+        entry.exercise_minutes != null
     );
 
     const vectors = [
@@ -69,43 +87,72 @@ export function CorrelationHeatmap({ entries }: { entries: MoodEntry[] }) {
   }, [entries]);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Correlation Matrix</CardTitle>
-        <CardDescription>
+    <Card className="w-full overflow-hidden">
+      <CardHeader className="px-4 sm:px-6">
+        <CardTitle className="text-xl sm:text-2xl">
+          Correlation Matrix
+        </CardTitle>
+
+        <CardDescription className="text-sm">
           How your mood, sleep, stress, and exercise patterns relate to each
           other
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="grid gap-1" style={{ gridTemplateColumns: `80px repeat(${factors.length}, 1fr)` }}>
+
+      <CardContent className="space-y-4 px-3 sm:px-6">
+        <div
+          className="grid w-full gap-1"
+          style={{
+            gridTemplateColumns: "46px repeat(4, minmax(0, 1fr))",
+          }}
+        >
           <div />
-          {factors.map((f) => (
-            <div key={f} className="text-center text-xs font-medium text-muted-foreground p-2">{f}</div>
+
+          {factors.map((factor) => (
+            <div
+              key={factor.full}
+              className="flex items-center justify-center text-center text-[10px] font-medium text-muted-foreground sm:text-xs"
+            >
+              <span className="sm:hidden">{factor.short}</span>
+              <span className="hidden sm:inline">{factor.full}</span>
+            </div>
           ))}
+
           {factors.map((row, i) => (
-            <>
-              <div key={`label-${row}`} className="flex items-center text-xs font-medium text-muted-foreground pr-2">{row}</div>
+            <div key={row.full} className="contents">
+              <div className="flex items-center text-[10px] font-medium text-muted-foreground sm:text-xs">
+                <span className="sm:hidden">{row.short}</span>
+                <span className="hidden sm:inline">{row.full}</span>
+              </div>
+
               {factors.map((col, j) => {
                 const r = matrix[i][j];
+
                 return (
-                  <Tooltip key={`${row}-${col}`}>
+                  <Tooltip key={`${row.full}-${col.full}`}>
                     <TooltipTrigger asChild>
-                      <div className={`aspect-square rounded-md flex items-center justify-center text-xs font-medium cursor-default ${getCorrelationColor(r)}`}>
+                      <div
+                        className={`flex aspect-square items-center justify-center rounded-lg text-[11px] font-medium sm:text-xs ${getCorrelationColor(
+                          r
+                        )}`}
+                      >
                         {r.toFixed(2)}
                       </div>
                     </TooltipTrigger>
+
                     <TooltipContent>
-                      <p>{row} ↔ {col}: {r.toFixed(3)}</p>
+                      <p>
+                        {row.full} ↔ {col.full}: {r.toFixed(3)}
+                      </p>
                     </TooltipContent>
                   </Tooltip>
                 );
               })}
-            </>
+            </div>
           ))}
         </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-center gap-1.5 text-[11px] text-muted-foreground sm:text-xs">
           <span>Strong −</span>
           <div className="h-3 w-3 rounded-sm bg-red-500" />
           <div className="h-3 w-3 rounded-sm bg-orange-300" />
