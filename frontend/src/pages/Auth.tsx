@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Brain } from "lucide-react";
+import { Brain, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
@@ -60,6 +60,7 @@ export default function Auth() {
       navigate("/professional/dashboard");
       return;
     }
+
     navigate("/patient/dashboard");
   };
 
@@ -149,12 +150,28 @@ export default function Auth() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
+        <div className="mb-4 flex justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/")}
+            aria-label="Back to main page"
+            className="gap-2"
+          >
+            <X className="h-4 w-4" />
+            Back
+          </Button>
+        </div>
+
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-primary">
             <Brain className="h-8 w-8 text-primary-foreground" />
           </div>
           <h1 className="text-3xl font-bold text-foreground">Healthy Minds</h1>
-          <p className="mt-2 text-muted-foreground font-mainpage-secondary">Mental Health Prediction Platform</p>
+          <p className="mt-2 text-muted-foreground font-mainpage-secondary">
+            Mental Health Prediction Platform
+          </p>
         </div>
 
         <Card>
@@ -255,7 +272,9 @@ export default function Auth() {
                   </div>
 
                   <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? "Creating account..." : "Create Professional Account"}
+                    {loading
+                      ? "Creating account..."
+                      : "Create Professional Account"}
                   </Button>
                 </CardContent>
               </form>
