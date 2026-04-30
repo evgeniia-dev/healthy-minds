@@ -170,7 +170,7 @@ export default function Auth() {
           </div>
           <h1 className="text-3xl font-bold text-foreground">Healthy Minds</h1>
           <p className="mt-2 text-muted-foreground font-mainpage-secondary">
-            Mental Health Prediction Platform
+            Mental Wellbeing Monitoring Platform
           </p>
         </div>
 

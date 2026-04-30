@@ -57,7 +57,8 @@ export function TrendCharts({ entries }: { entries: MoodEntry[] }) {
           <div>
             <CardTitle>Trends</CardTitle>
             <CardDescription className="mt-1">
-              See how your mood, stress, and sleep change over time.
+              Follow your mood, stress, and sleep over time.
+              Each line shows how one area changes day by day, helping you notice patterns in your wellbeing.
             </CardDescription>
           </div>
 
