@@ -8,8 +8,8 @@ import {
   Brain,
   LogOut,
 } from "lucide-react";
-import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
+import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Sidebar,
@@ -46,6 +46,7 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const { role, profile, signOut, loading } = useAuth();
 
+  // Sidebar links depend on the current user role.
   const items =
     role === "professional"
       ? professionalItems
@@ -53,11 +54,16 @@ export function AppSidebar() {
       ? patientItems
       : [];
 
-  const isActive = (path: string) => location.pathname === path;
+  // startsWith keeps parent routes active, for example /professional/patients/123.
+  const isActive = (path: string) => location.pathname.startsWith(path);
 
   const handleLogout = async () => {
-    await signOut();
-    navigate("/", { replace: true });
+    try {
+      await signOut();
+      navigate("/", { replace: true });
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   return (
@@ -75,13 +81,20 @@ export function AppSidebar() {
 
           <SidebarGroupContent>
             <SidebarMenu>
-              {!loading &&
+              {/* Show a small loading state instead of an empty sidebar. */}
+              {loading ? (
+                !collapsed && (
+                  <div className="px-3 py-2 text-sm text-muted-foreground">
+                    Loading...
+                  </div>
+                )
+              ) : (
                 items.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild isActive={isActive(item.url)}>
                       <NavLink
                         to={item.url}
-                        end
+                        end={item.url === "/settings"}
                         className="hover:bg-accent"
                         activeClassName="bg-accent text-accent-foreground font-medium"
                       >
@@ -90,7 +103,8 @@ export function AppSidebar() {
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                ))}
+                ))
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

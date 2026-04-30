@@ -95,9 +95,9 @@ export default function Auth() {
 
       toast.success("Logged in successfully");
       goToDashboard(data.user.role);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Login error:", error);
-      toast.error(error.message || "Login failed");
+      toast.error(error instanceof Error ? error.message : "Login failed");
     }
 
     setLoading(false);
@@ -135,9 +135,9 @@ export default function Auth() {
 
       toast.success("Professional account created");
       goToDashboard(data.user.role);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Signup error:", error);
-      toast.error(error.message || "Signup failed");
+      toast.error(error instanceof Error ? error.message : "Signup failed");
     }
 
     setLoading(false);
@@ -170,7 +170,7 @@ export default function Auth() {
           </div>
           <h1 className="text-3xl font-bold text-foreground">Healthy Minds</h1>
           <p className="mt-2 text-muted-foreground font-mainpage-secondary">
-            Mental Health Prediction Platform
+            Mental Wellbeing Monitoring Platform
           </p>
         </div>
 

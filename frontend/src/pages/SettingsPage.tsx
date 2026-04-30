@@ -1,19 +1,26 @@
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { toast } from "sonner";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 export default function SettingsPage() {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshUser } = useAuth();
   const [fullName, setFullName] = useState(profile?.full_name || "");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    // Keep the input synced with the latest profile data from auth context.
     setFullName(profile?.full_name || "");
   }, [profile]);
 
@@ -25,9 +32,10 @@ export default function SettingsPage() {
       return;
     }
 
-    setLoading(true);
-
     try {
+      setLoading(true);
+
+      // Save profile changes through the backend.
       const response = await fetch(`${API_URL}/auth/me`, {
         method: "PATCH",
         headers: {
@@ -35,7 +43,7 @@ export default function SettingsPage() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          full_name: fullName,
+          full_name: fullName.trim(),
         }),
       });
 
@@ -43,54 +51,50 @@ export default function SettingsPage() {
 
       if (!response.ok) {
         toast.error(data.detail || "Failed to update profile");
-        setLoading(false);
         return;
       }
 
-      const currentUserRaw = localStorage.getItem("current_user");
-      if (currentUserRaw) {
-        try {
-          const currentUser = JSON.parse(currentUserRaw);
-          localStorage.setItem(
-            "current_user",
-            JSON.stringify({
-              ...currentUser,
-              full_name: data.full_name,
-            })
-          );
-        } catch {
-        }
-      }
+      // Refresh auth context so sidebar/profile updates without page reload.
+      await refreshUser();
 
       toast.success("Profile updated!");
-      window.location.reload();
     } catch (error) {
       console.error("Failed to update profile:", error);
       toast.error("Failed to update profile");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
     <div className="mx-auto max-w-lg space-y-6">
-      <h1 className="text-2xl font-bold text-foreground">Settings</h1>
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Settings</h1>
+        <p className="text-muted-foreground">
+          Manage your basic profile information.
+        </p>
+      </div>
 
       <Card>
         <CardHeader>
           <CardTitle>Profile</CardTitle>
-          <CardDescription>Update your display name</CardDescription>
+          <CardDescription>Update your display name.</CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label>Email</Label>
-            <Input value={user?.email || ""} disabled />
+            <Label htmlFor="settings-email">Email</Label>
+            <Input id="settings-email" value={user?.email || ""} disabled />
           </div>
 
           <div className="space-y-2">
-            <Label>Full Name</Label>
-            <Input value={fullName} onChange={(e) => setFullName(e.target.value)} />
+            <Label htmlFor="settings-full-name">Full name</Label>
+            <Input
+              id="settings-full-name"
+              value={fullName}
+              onChange={(event) => setFullName(event.target.value)}
+              placeholder="Enter your full name"
+            />
           </div>
 
           <Button onClick={handleSave} disabled={loading}>
