@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   LineChart,
   Line,
@@ -35,31 +41,37 @@ type IndicatorGroup = {
   rows: PopulationRow[];
 };
 
+/**
+ * Format numeric values for display.
+ * Ensures consistent decimals and handles missing values.
+ */
 function formatValue(value: number | null) {
-  if (value === null || Number.isNaN(value)) {
-    return "N/A";
-  }
+  if (value === null || Number.isNaN(value)) return "N/A";
   return value.toFixed(1);
 }
 
+/**
+ * Shortens long indicator names into readable labels.
+ * Avoids overwhelming the UI with full dataset descriptions.
+ */
 function shortName(name: string) {
-  if (name.includes("Severe mental strain")) {
-    return "Severe mental strain";
-  }
-  if (name.includes("Anxiety or insomnia")) {
-    return "Anxiety or insomnia";
-  }
-  if (name.includes("Psychiatric outpatient visits")) {
+  if (name.includes("Severe mental strain")) return "Severe mental strain";
+  if (name.includes("Anxiety or insomnia")) return "Anxiety or insomnia";
+  if (name.includes("Psychiatric outpatient visits"))
     return "Psychiatric outpatient visits";
-  }
   return name;
 }
 
 export default function PopulationData() {
   const [rows, setRows] = useState<PopulationRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedIndicatorId, setSelectedIndicatorId] = useState<number | null>(null);
+  const [selectedIndicatorId, setSelectedIndicatorId] = useState<number | null>(
+    null
+  );
 
+  /**
+   * Fetch population data once on mount.
+   */
   useEffect(() => {
     const fetchPopulationData = async () => {
       try {
@@ -68,7 +80,6 @@ export default function PopulationData() {
 
         if (!response.ok || data.error) {
           toast.error(data.error || "Failed to load population data");
-          setLoading(false);
           return;
         }
 
@@ -76,14 +87,18 @@ export default function PopulationData() {
       } catch (error) {
         console.error("Failed to fetch population data:", error);
         toast.error("Failed to load population data");
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     };
 
     void fetchPopulationData();
   }, []);
 
+  /**
+   * Group raw rows by indicator_id.
+   * Also sorts each group chronologically.
+   */
   const groupedIndicators = useMemo<IndicatorGroup[]>(() => {
     const map = new Map<number, IndicatorGroup>();
 
@@ -108,33 +123,50 @@ export default function PopulationData() {
       .sort((a, b) => a.indicator_name.localeCompare(b.indicator_name));
   }, [rows]);
 
+  /**
+   * Set default selected indicator once data is available.
+   */
   useEffect(() => {
     if (groupedIndicators.length > 0 && selectedIndicatorId === null) {
       setSelectedIndicatorId(groupedIndicators[0].indicator_id);
     }
   }, [groupedIndicators, selectedIndicatorId]);
 
+  /**
+   * Get currently selected indicator group.
+   */
   const selectedIndicator = useMemo(() => {
-    return groupedIndicators.find((group) => group.indicator_id === selectedIndicatorId) ?? null;
+    return (
+      groupedIndicators.find(
+        (group) => group.indicator_id === selectedIndicatorId
+      ) ?? null
+    );
   }, [groupedIndicators, selectedIndicatorId]);
 
+  /**
+   * Extract latest available value for each indicator (used in cards).
+   */
   const latestStats = useMemo(() => {
     return groupedIndicators.map((group) => {
-      const latestWithValue = [...group.rows].reverse().find((row) => row.value !== null);
+      const latest = [...group.rows]
+        .reverse()
+        .find((row) => row.value !== null);
+
       return {
         indicator_id: group.indicator_id,
         indicator_name: group.indicator_name,
         region: group.region,
-        latestYear: latestWithValue?.year ?? null,
-        latestValue: latestWithValue?.value ?? null,
+        latestYear: latest?.year ?? null,
+        latestValue: latest?.value ?? null,
       };
     });
   }, [groupedIndicators]);
 
+  /**
+   * Prepare chart data (remove null values).
+   */
   const chartData = useMemo(() => {
-    if (!selectedIndicator) {
-      return [];
-    }
+    if (!selectedIndicator) return [];
 
     return selectedIndicator.rows
       .filter((row) => row.value !== null)
@@ -144,61 +176,68 @@ export default function PopulationData() {
       }));
   }, [selectedIndicator]);
 
-  const tableRows = useMemo(() => {
-    if (!selectedIndicator) {
-      return [];
-    }
-
-    return selectedIndicator.rows;
-  }, [selectedIndicator]);
-
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Population Data</h1>
+        <h1 className="text-2xl font-bold text-foreground">
+          Population Data
+        </h1>
         <p className="text-muted-foreground">
-          Finnish mental health indicators from Sotkanet
+          Finnish mental health indicators for context and comparison
         </p>
       </div>
 
+      {/* Loading / empty states */}
       {loading ? (
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground">Loading population data...</p>
+            <p className="text-sm text-muted-foreground">
+              Loading population data...
+            </p>
           </CardContent>
         </Card>
       ) : groupedIndicators.length === 0 ? (
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground">No population data available.</p>
+            <p className="text-sm text-muted-foreground">
+              No population data available.
+            </p>
           </CardContent>
         </Card>
       ) : (
         <>
+          {/* Indicator summary cards */}
           <div className="grid gap-4 md:grid-cols-3">
             {latestStats.map((stat) => {
-              const isSelected = stat.indicator_id === selectedIndicatorId;
+              const isSelected =
+                stat.indicator_id === selectedIndicatorId;
 
               return (
                 <Card
                   key={stat.indicator_id}
                   className={`cursor-pointer transition-colors ${
-                    isSelected ? "ring-2 ring-primary" : "hover:bg-accent/40"
+                    isSelected
+                      ? "ring-2 ring-primary"
+                      : "hover:bg-accent/40"
                   }`}
-                  onClick={() => setSelectedIndicatorId(stat.indicator_id)}
+                  onClick={() =>
+                    setSelectedIndicatorId(stat.indicator_id)
+                  }
                 >
                   <CardHeader className="pb-2">
-                    <CardDescription>{stat.region || "Finland"}</CardDescription>
-                    <CardTitle className="text-base leading-snug">
+                    <CardDescription>
+                      {stat.region || "Finland"}
+                    </CardDescription>
+                    <CardTitle className="text-base">
                       {shortName(stat.indicator_name)}
                     </CardTitle>
                   </CardHeader>
 
-                  <CardContent className="pt-0">
+                  <CardContent>
                     <div className="text-3xl font-bold">
                       {formatValue(stat.latestValue)}
                     </div>
-                    <p className="mt-1 text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground">
                       Latest year: {stat.latestYear ?? "N/A"}
                     </p>
                   </CardContent>
@@ -207,63 +246,37 @@ export default function PopulationData() {
             })}
           </div>
 
+          {/* Chart */}
           <Card>
-            <CardHeader className="pb-4">
-              <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-                <div>
-                  <CardTitle>{shortName(selectedIndicator?.indicator_name || "Indicator")}</CardTitle>
-                  <CardDescription>
-                    National trend over time
-                  </CardDescription>
-                </div>
-
-                <div className="w-full md:w-[320px]">
-                  <Select
-                    value={selectedIndicatorId ? String(selectedIndicatorId) : undefined}
-                    onValueChange={(value) => setSelectedIndicatorId(Number(value))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select indicator" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {groupedIndicators.map((group) => (
-                        <SelectItem
-                          key={group.indicator_id}
-                          value={String(group.indicator_id)}
-                        >
-                          {shortName(group.indicator_name)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+            <CardHeader>
+              <CardTitle>
+                {shortName(
+                  selectedIndicator?.indicator_name || "Indicator"
+                )}
+              </CardTitle>
+              <CardDescription>
+                How this indicator changes over time
+              </CardDescription>
             </CardHeader>
 
             <CardContent>
               <div className="h-[260px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                    <XAxis
-                      dataKey="year"
-                      tick={{ fill: "hsl(var(--muted-foreground))" }}
-                    />
-                    <YAxis tick={{ fill: "hsl(var(--muted-foreground))" }} />
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="year" />
+                    <YAxis />
                     <Tooltip
-                      formatter={(value: number) => value.toFixed(1)}
-                      contentStyle={{
-                        backgroundColor: "hsl(var(--card))",
-                        border: "1px solid hsl(var(--border))",
-                        borderRadius: "var(--radius)",
-                      }}
+                      formatter={(value: number) =>
+                        value.toFixed(1)
+                      }
                     />
                     <Line
                       type="monotone"
                       dataKey="value"
                       stroke="hsl(var(--primary))"
-                      strokeWidth={2.5}
-                      dot={{ r: 3 }}
+                      strokeWidth={2}
+                      dot={false}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -271,43 +284,36 @@ export default function PopulationData() {
             </CardContent>
           </Card>
 
+          {/* Table */}
           <Card>
-            <CardHeader className="pb-3">
+            <CardHeader>
               <CardTitle>Yearly values</CardTitle>
               <CardDescription>
-                Selected indicator, cleaned for quick comparison
+                Raw data for reference
               </CardDescription>
             </CardHeader>
 
             <CardContent>
               <div className="overflow-hidden rounded-lg border">
-                <div className="grid grid-cols-2 bg-muted/40 px-4 py-3 text-sm font-medium">
-                  <div>Year</div>
-                  <div className="text-right">Value</div>
-                </div>
-
-                {tableRows.map((row) => (
+                {selectedIndicator?.rows.map((row) => (
                   <div
-                    key={`${row.indicator_id}-${row.year}`}
-                    className="grid grid-cols-2 border-t px-4 py-3 text-sm"
+                    key={row.year}
+                    className="flex justify-between px-4 py-2 text-sm border-t"
                   >
-                    <div>{row.year}</div>
-                    <div className="text-right text-muted-foreground">
-                      {formatValue(row.value)}
-                    </div>
+                    <span>{row.year}</span>
+                    <span>{formatValue(row.value)}</span>
                   </div>
                 ))}
               </div>
             </CardContent>
           </Card>
 
+          {/* Disclaimer */}
           <Card className="bg-muted/30">
             <CardContent className="pt-6">
-              <p className="text-xs leading-relaxed text-muted-foreground">
-                Data source: Sotkanet Statistics and Indicator Bank, maintained by the
-                Finnish Institute for Health and Welfare (THL). These public Finnish
-                population-level indicators are shown for contextual reference and do
-                not represent clinical diagnosis.
+              <p className="text-xs text-muted-foreground">
+                These are population-level statistics from Finland.
+                They help provide context, not diagnosis.
               </p>
             </CardContent>
           </Card>

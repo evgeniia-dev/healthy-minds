@@ -1,4 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Eye, UserPlus } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,9 +22,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { toast } from "sonner";
-import { UserPlus, Eye } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
@@ -38,21 +38,27 @@ export default function Patients() {
   const navigate = useNavigate();
 
   const [patients, setPatients] = useState<PatientRow[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loadingPatients, setLoadingPatients] = useState(true);
+  const [creatingPatient, setCreatingPatient] = useState(false);
   const [open, setOpen] = useState(false);
+
   const [newEmail, setNewEmail] = useState("");
   const [newName, setNewName] = useState("");
   const [newPassword, setNewPassword] = useState("");
 
-  const fetchPatients = async () => {
+  const fetchPatients = useCallback(async () => {
     const token = localStorage.getItem("access_token");
 
     if (!token) {
       toast.error("You are not authenticated");
+      setLoadingPatients(false);
       return;
     }
 
     try {
+      setLoadingPatients(true);
+
+      // Loads only patients assigned to the current professional.
       const response = await fetch(`${API_URL}/patients`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -70,17 +76,21 @@ export default function Patients() {
     } catch (error) {
       console.error("Failed to fetch patients:", error);
       toast.error("Failed to load patients");
+    } finally {
+      setLoadingPatients(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    if (user) {
+    if (user?.role === "professional") {
       void fetchPatients();
+    } else {
+      setLoadingPatients(false);
     }
-  }, [user]);
+  }, [user, fetchPatients]);
 
-  const handleAddPatient = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAddPatient = async (event: React.FormEvent) => {
+    event.preventDefault();
 
     const token = localStorage.getItem("access_token");
 
@@ -89,9 +99,10 @@ export default function Patients() {
       return;
     }
 
-    setLoading(true);
-
     try {
+      setCreatingPatient(true);
+
+      // Professional creates a patient account with a temporary password.
       const response = await fetch(`${API_URL}/patients`, {
         method: "POST",
         headers: {
@@ -99,9 +110,9 @@ export default function Patients() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          email: newEmail,
+          email: newEmail.trim(),
           password: newPassword,
-          full_name: newName,
+          full_name: newName.trim(),
         }),
       });
 
@@ -109,28 +120,33 @@ export default function Patients() {
 
       if (!response.ok) {
         toast.error(data.detail || "Failed to create patient");
-        setLoading(false);
         return;
       }
 
-      toast.success(`Patient ${newName} created`);
+      toast.success(`Patient ${newName.trim()} created`);
       setOpen(false);
       setNewEmail("");
       setNewName("");
       setNewPassword("");
+
       await fetchPatients();
     } catch (error) {
       console.error("Create patient failed:", error);
-      toast.error("Unexpected error");
+      toast.error("Failed to create patient");
+    } finally {
+      setCreatingPatient(false);
     }
-
-    setLoading(false);
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">Patients</h1>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Patients</h1>
+          <p className="text-muted-foreground">
+            Manage patient accounts connected to your profile.
+          </p>
+        </div>
 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -147,12 +163,13 @@ export default function Patients() {
 
             <form onSubmit={handleAddPatient} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="patient-name">Patient Name</Label>
+                <Label htmlFor="patient-name">Patient name</Label>
                 <Input
                   id="patient-name"
                   value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
+                  onChange={(event) => setNewName(event.target.value)}
                   required
+                  placeholder="Full name"
                 />
               </div>
 
@@ -162,25 +179,27 @@ export default function Patients() {
                   id="patient-email"
                   type="email"
                   value={newEmail}
-                  onChange={(e) => setNewEmail(e.target.value)}
+                  onChange={(event) => setNewEmail(event.target.value)}
                   required
+                  placeholder="patient@example.com"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="patient-password">Temporary Password</Label>
+                <Label htmlFor="patient-password">Temporary password</Label>
                 <Input
                   id="patient-password"
                   type="password"
                   value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
+                  onChange={(event) => setNewPassword(event.target.value)}
                   required
                   minLength={6}
+                  placeholder="At least 6 characters"
                 />
               </div>
 
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Creating..." : "Create Patient"}
+              <Button type="submit" className="w-full" disabled={creatingPatient}>
+                {creatingPatient ? "Creating..." : "Create Patient"}
               </Button>
             </form>
           </DialogContent>
@@ -188,7 +207,7 @@ export default function Patients() {
       </div>
 
       <Card>
-        <CardContent className="p-0">
+        <CardContent className="overflow-x-auto p-0">
           <Table>
             <TableHeader>
               <TableRow>
@@ -200,31 +219,44 @@ export default function Patients() {
             </TableHeader>
 
             <TableBody>
-              {patients.length === 0 ? (
+              {loadingPatients ? (
                 <TableRow>
                   <TableCell
                     colSpan={4}
                     className="py-8 text-center text-muted-foreground"
                   >
-                    No patients yet. Click "Add Patient" to get started.
+                    Loading patients...
+                  </TableCell>
+                </TableRow>
+              ) : patients.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={4}
+                    className="py-8 text-center text-muted-foreground"
+                  >
+                    No patients yet. Click “Add Patient” to get started.
                   </TableCell>
                 </TableRow>
               ) : (
                 patients.map((patient) => (
                   <TableRow key={patient.id}>
                     <TableCell className="font-medium">
-                      {patient.full_name || "Unknown"}
+                      {patient.full_name || "Unnamed patient"}
                     </TableCell>
+
                     <TableCell className="text-muted-foreground">
                       {patient.email}
                     </TableCell>
+
                     <TableCell className="text-muted-foreground">
                       {new Date(patient.created_at).toLocaleDateString()}
                     </TableCell>
+
                     <TableCell>
                       <Button
                         variant="ghost"
                         size="sm"
+                        aria-label={`View ${patient.full_name || patient.email}`}
                         onClick={() =>
                           navigate(`/professional/patients/${patient.id}`)
                         }
