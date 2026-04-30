@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import { AppLayout } from "@/components/AppLayout";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -34,27 +35,77 @@ const App = () => {
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
 
-              {/* Authenticated app routes inside the shared layout */}
+              {/* Protected routes inside the shared app layout */}
               <Route element={<AppLayout />}>
-                {/* Patient routes */}
-                <Route path="/patient/dashboard" element={<PatientDashboard />} />
-                <Route path="/patient/checkin" element={<Checkin />} />
-                <Route path="/patient/trends" element={<Trends />} />
+                {/* Patient-only routes */}
+                <Route
+                  path="/patient/dashboard"
+                  element={
+                    <ProtectedRoute role="patient">
+                      <PatientDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/patient/checkin"
+                  element={
+                    <ProtectedRoute role="patient">
+                      <Checkin />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/patient/trends"
+                  element={
+                    <ProtectedRoute role="patient">
+                      <Trends />
+                    </ProtectedRoute>
+                  }
+                />
 
-                {/* Professional routes */}
+                {/* Professional-only routes */}
                 <Route
                   path="/professional/dashboard"
-                  element={<ProfessionalDashboard />}
+                  element={
+                    <ProtectedRoute role="professional">
+                      <ProfessionalDashboard />
+                    </ProtectedRoute>
+                  }
                 />
-                <Route path="/professional/patients" element={<Patients />} />
+                <Route
+                  path="/professional/patients"
+                  element={
+                    <ProtectedRoute role="professional">
+                      <Patients />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route
                   path="/professional/patients/:patientId"
-                  element={<PatientDetail />}
+                  element={
+                    <ProtectedRoute role="professional">
+                      <PatientDetail />
+                    </ProtectedRoute>
+                  }
                 />
 
-                {/* Shared routes */}
-                <Route path="/population" element={<PopulationData />} />
-                <Route path="/settings" element={<SettingsPage />} />
+                {/* Shared authenticated routes */}
+                <Route
+                  path="/population"
+                  element={
+                    <ProtectedRoute>
+                      <PopulationData />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={
+                    <ProtectedRoute>
+                      <SettingsPage />
+                    </ProtectedRoute>
+                  }
+                />
               </Route>
 
               {/* Fallback route for unknown pages */}
