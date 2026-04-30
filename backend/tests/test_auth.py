@@ -1,26 +1,8 @@
-import pytest
-from fastapi.testclient import TestClient
-from app.db.session import SessionLocal
-from app.models import User
-from app.main import app
-
-# setup test user
+# setup test data
 test_email = "test.user@example.com"
 test_pwd = "testuser123"
 test_name = "test user 1"
 update_test_name = "Master Shifu"
-
-# teardown test inputs committed to production database
-@pytest.fixture(scope="module")
-def client():
-  with TestClient(app) as test_client:
-    yield test_client
-    db = SessionLocal()
-    try:
-      db.query(User).filter(User.email.in_([test_email])).delete(synchronize_session=False)
-      db.commit()
-    finally:
-      db.close()
 
 
 # test auth endpoint signup/professional for new user and exisiting user registration
