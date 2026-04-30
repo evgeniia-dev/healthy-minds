@@ -8,7 +8,6 @@ import { AppLayout } from "@/components/AppLayout";
 
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import ResetPassword from "./pages/ResetPassword";
 import PatientDashboard from "./pages/PatientDashboard";
 import ProfessionalDashboard from "./pages/ProfessionalDashboard";
 import Checkin from "./pages/Checkin";
@@ -27,29 +26,38 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
+
         <BrowserRouter>
           <AuthProvider>
             <Routes>
+              {/* Public routes */}
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
 
+              {/* Authenticated app routes inside the shared layout */}
               <Route element={<AppLayout />}>
+                {/* Patient routes */}
                 <Route path="/patient/dashboard" element={<PatientDashboard />} />
                 <Route path="/patient/checkin" element={<Checkin />} />
                 <Route path="/patient/trends" element={<Trends />} />
 
-                <Route path="/professional/dashboard" element={<ProfessionalDashboard />} />
+                {/* Professional routes */}
+                <Route
+                  path="/professional/dashboard"
+                  element={<ProfessionalDashboard />}
+                />
                 <Route path="/professional/patients" element={<Patients />} />
                 <Route
                   path="/professional/patients/:patientId"
                   element={<PatientDetail />}
                 />
 
+                {/* Shared routes */}
                 <Route path="/population" element={<PopulationData />} />
                 <Route path="/settings" element={<SettingsPage />} />
               </Route>
 
+              {/* Fallback route for unknown pages */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>
