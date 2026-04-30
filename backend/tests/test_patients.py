@@ -8,23 +8,6 @@ test_patient_pwd = "patienttest123"
 test_patient_name = "patient test user"
 
 
-# @pytest.fixture(scope="module")
-# def client():
-#   with TestClient(app) as test_client:
-#     yield test_client
-#     db = SessionLocal()
-#     try:
-#       db.query(PatientProfessionalLink).filter(
-#         PatientProfessionalLink.professional_id.in_(
-#           db.query(User).filter(User.email.in_([test_professional_email])).with_entities(User.id)
-#         )
-#       ).delete(synchronize_session=False)
-#       db.query(User).filter(User.email.in_([test_professional_email, test_patient_email])).delete(synchronize_session=False)
-#       db.commit()
-#     finally:
-#       db.close()
-
-
 def test_create_patient_as_professional(client):
   # register as professional
   response = client.post(
