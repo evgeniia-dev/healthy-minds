@@ -6,21 +6,6 @@ update_test_name = "Master Shifu"
 
 
 # test auth endpoint signup/professional for new user and exisiting user registration
-def test_exisiting_professional_signup(client):
-  response = client.post(
-    "auth/signup/professional",
-    json={
-      "email":"senja.mulari@gmail.com", 
-      "password":"123456", 
-      "full_name":"senja mulari"
-    }
-  )
-  assert response.status_code == 400
-  assert response.json() == {
-    "detail": "Email is already registered"
-  }
-
-
 def test_new_professional_signup(client):
   response = client.post(
     "auth/signup/professional",
@@ -39,7 +24,22 @@ def test_new_professional_signup(client):
   assert "password" not in json
 
 
-def test_valid_login(client):
+def test_exisiting_professional_signup(client):
+  response = client.post(
+    "auth/signup/professional",
+    json={
+      "email":test_email, 
+      "password":test_pwd, 
+      "full_name":test_name
+    }
+  )
+  assert response.status_code == 400
+  assert response.json() == {
+    "detail": "Email is already registered"
+  }
+
+
+def test_current_user_info(client):
   response = client.post(
     "auth/login",
     json= {
@@ -54,10 +54,8 @@ def test_valid_login(client):
   assert json["token_type"] == "bearer"
   assert json["user"]["email"] == test_email
   assert json["user"]["role"] == "professional"
-  return token
 
-def test_get_valid_user_info(client):
-  token = test_valid_login(client)
+# get current user information
   response = client.get(
     "auth/me",
     headers={ "Authorization":f"Bearer {token}" }
@@ -67,8 +65,7 @@ def test_get_valid_user_info(client):
   assert json["email"] == test_email
   assert json["full_name"] == test_name
 
-def test_update_valid_user_info(client):
-  token = test_valid_login(client)
+# update current user information
   response = client.patch(
     "auth/me",
     headers={ "Authorization":f"Bearer {token}"},
