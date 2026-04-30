@@ -46,3 +46,6 @@ __pycache__
 *.sln
 *.sw?
 node_modules
+
+# GitHub Copilot files
+.github/prompts

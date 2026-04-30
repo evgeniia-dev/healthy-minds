@@ -9,7 +9,7 @@ from app.core.security import hash_password
 
 router = APIRouter(prefix="/patients", tags=["patients"])
 
-
+# registered professional can list patients by using PatientProfessionalLink table in the database
 @router.get("")
 def get_patients(
     current_user: User = Depends(get_current_user),
@@ -59,7 +59,7 @@ def get_patients(
 
     return result
 
-
+# registered professional can create patients with basic information through suggested format in CreatePatientRequest 
 @router.post("")
 def create_patient(
     payload: CreatePatientRequest,
