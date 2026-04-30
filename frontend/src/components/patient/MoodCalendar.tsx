@@ -41,7 +41,7 @@ const moodColors: Record<number, string> = {
   10: "bg-emerald-500",
 };
 
-const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 export function MoodCalendar({ entries }: { entries: MoodEntry[] }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -74,7 +74,8 @@ export function MoodCalendar({ entries }: { entries: MoodEntry[] }) {
           <div>
             <CardTitle>Mood Calendar</CardTitle>
             <CardDescription className="mt-1">
-              A monthly view of your mood check-ins.
+              See your mood check-ins in a monthly calendar. 
+              Each day shows how you felt, making it easier to notice mood patterns over time.
             </CardDescription>
           </div>
 
