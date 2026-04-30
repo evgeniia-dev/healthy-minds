@@ -15,8 +15,6 @@ import { toast } from "sonner";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
-const moodEmojis = ["", "", "", "", "", "", "", "", "", "", ""];
-
 export function DailyCheckin({ onSuccess }: { onSuccess?: () => void }) {
   const [moodScore, setMoodScore] = useState(5);
   const [sleepHours, setSleepHours] = useState("");
@@ -48,7 +46,9 @@ export function DailyCheckin({ onSuccess }: { onSuccess?: () => void }) {
           mood_score: moodScore,
           sleep_hours: sleepHours ? parseFloat(sleepHours) : null,
           stress_level: stressLevel,
-          exercise_minutes: exerciseMinutes ? parseInt(exerciseMinutes, 10) : null,
+          exercise_minutes: exerciseMinutes
+            ? parseInt(exerciseMinutes, 10)
+            : null,
           notes: notes || null,
         }),
       });
@@ -57,7 +57,6 @@ export function DailyCheckin({ onSuccess }: { onSuccess?: () => void }) {
 
       if (!response.ok) {
         toast.error(data.detail || "Failed to save check-in");
-        setLoading(false);
         return;
       }
 
@@ -66,18 +65,18 @@ export function DailyCheckin({ onSuccess }: { onSuccess?: () => void }) {
     } catch (error) {
       console.error("Failed to save check-in:", error);
       toast.error("Failed to save check-in");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          Daily Check-in <span className="text-2xl">{moodEmojis[moodScore]}</span>
-        </CardTitle>
-        <CardDescription>How are you feeling today?</CardDescription>
+        <CardTitle>Daily Check-in</CardTitle>
+        <CardDescription>
+          Take a moment to record how you are feeling today.
+        </CardDescription>
       </CardHeader>
 
       <CardContent>
@@ -92,13 +91,13 @@ export function DailyCheckin({ onSuccess }: { onSuccess?: () => void }) {
               step={1}
             />
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Very Low</span>
-              <span>Excellent</span>
+              <span>Very low</span>
+              <span>Very good</span>
             </div>
           </div>
 
           <div className="space-y-3">
-            <Label>Stress Level ({stressLevel}/10)</Label>
+            <Label>Stress level ({stressLevel}/10)</Label>
             <Slider
               value={[stressLevel]}
               onValueChange={([value]) => setStressLevel(value)}
@@ -107,14 +106,14 @@ export function DailyCheckin({ onSuccess }: { onSuccess?: () => void }) {
               step={1}
             />
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Relaxed</span>
-              <span>Very Stressed</span>
+              <span>Calm</span>
+              <span>Very stressed</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="sleep">Sleep (hours)</Label>
+              <Label htmlFor="sleep">Sleep in hours</Label>
               <Input
                 id="sleep"
                 type="number"
@@ -128,7 +127,7 @@ export function DailyCheckin({ onSuccess }: { onSuccess?: () => void }) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="exercise">Exercise (min)</Label>
+              <Label htmlFor="exercise">Exercise in minutes</Label>
               <Input
                 id="exercise"
                 type="number"
@@ -146,7 +145,7 @@ export function DailyCheckin({ onSuccess }: { onSuccess?: () => void }) {
               id="notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="How was your day?"
+              placeholder="Anything you want to remember about today?"
               rows={3}
             />
           </div>
