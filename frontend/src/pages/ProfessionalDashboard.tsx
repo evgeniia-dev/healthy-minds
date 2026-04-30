@@ -1,73 +1,108 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, FileText, TrendingUp, AlertTriangle } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { AlertTriangle, FileText, TrendingUp, Users } from "lucide-react";
+import { toast } from "sonner";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+
+type Patient = {
+  id: string;
+};
+
+type DashboardStat = {
+  label: string;
+  value: number | string;
+  icon: typeof Users;
+  onClick?: () => void;
+  clickable: boolean;
+};
 
 export default function ProfessionalDashboard() {
   const navigate = useNavigate();
 
   const [patientCount, setPatientCount] = useState(0);
   const [noteCount, setNoteCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     const token = localStorage.getItem("access_token");
-    if (!token) return;
+
+    if (!token) {
+      setLoading(false);
+      return;
+    }
 
     try {
-      const res = await fetch(`${API_URL}/patients`, {
+      setLoading(true);
+
+      // First load all patients assigned to the current professional.
+      const patientsResponse = await fetch(`${API_URL}/patients`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      const data = await res.json();
+      const patientsData = await patientsResponse.json();
 
-      if (!res.ok) return;
-
-      setPatientCount(data.length);
-
-      let totalNotes = 0;
-
-      for (const patient of data) {
-        const notesRes = await fetch(
-          `${API_URL}/patients/${patient.id}/treatment-notes`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const notes = await notesRes.json();
-
-        if (notesRes.ok) {
-          totalNotes += notes.length;
-        }
+      if (!patientsResponse.ok) {
+        toast.error(patientsData.detail || "Failed to load dashboard data");
+        return;
       }
 
-      setNoteCount(totalNotes);
+      const patients: Patient[] = patientsData;
+      setPatientCount(patients.length);
+
+      // Then load treatment notes for each patient to calculate total notes.
+      const noteCounts = await Promise.all(
+        patients.map(async (patient) => {
+          try {
+            const notesResponse = await fetch(
+              `${API_URL}/patients/${patient.id}/treatment-notes`,
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+
+            const notesData = await notesResponse.json();
+
+            if (!notesResponse.ok || !Array.isArray(notesData)) {
+              return 0;
+            }
+
+            return notesData.length;
+          } catch {
+            return 0;
+          }
+        })
+      );
+
+      setNoteCount(noteCounts.reduce((sum, count) => sum + count, 0));
     } catch (error) {
       console.error("Failed to fetch dashboard stats:", error);
+      toast.error("Failed to load dashboard data");
+    } finally {
+      setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchStats();
   }, []);
 
-  const stats = [
+  useEffect(() => {
+    void fetchStats();
+  }, [fetchStats]);
+
+  const stats: DashboardStat[] = [
     {
       label: "Active Patients",
-      value: patientCount,
+      value: loading ? "..." : patientCount,
       icon: Users,
       onClick: () => navigate("/professional/patients"),
       clickable: true,
     },
     {
       label: "Treatment Notes",
-      value: noteCount,
+      value: loading ? "..." : noteCount,
       icon: FileText,
       clickable: false,
     },
@@ -93,7 +128,7 @@ export default function ProfessionalDashboard() {
           Professional Dashboard
         </h1>
         <p className="text-muted-foreground">
-          Overview of your patients and treatments
+          Overview of your patients, notes, and population data.
         </p>
       </div>
 
@@ -101,12 +136,24 @@ export default function ProfessionalDashboard() {
         {stats.map((stat) => (
           <Card
             key={stat.label}
+            role={stat.clickable ? "button" : undefined}
+            tabIndex={stat.clickable ? 0 : undefined}
             className={
               stat.clickable
-                ? "cursor-pointer transition-colors hover:bg-accent/50"
+                ? "cursor-pointer transition-colors hover:bg-accent/50 focus:outline-none focus:ring-2 focus:ring-ring"
                 : "opacity-90"
             }
             onClick={stat.onClick}
+            onKeyDown={(event) => {
+              // Makes clickable cards usable with keyboard Enter/Space.
+              if (
+                stat.clickable &&
+                (event.key === "Enter" || event.key === " ")
+              ) {
+                event.preventDefault();
+                stat.onClick?.();
+              }
+            }}
           >
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
