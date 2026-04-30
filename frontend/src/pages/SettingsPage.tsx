@@ -58,8 +58,9 @@ export default function SettingsPage() {
               full_name: data.full_name,
             })
           );
-        } catch {
-        }
+        } catch (error) {
+        console.error("Failed to load settings:", error);
+  }
       }
 
       toast.success("Profile updated!");
