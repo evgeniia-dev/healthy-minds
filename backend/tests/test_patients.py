@@ -59,7 +59,7 @@ def test_create_patient_duplicate_email(client):
       "password": test_professional_pwd
     }
   )
-  
+  assert response.status_code == 200
   token = response.json()["access_token"]
   
   # create patient with existing email
@@ -88,7 +88,7 @@ def test_get_patients_as_professional(client):
       "password": test_professional_pwd
     }
   )
-  
+  assert response.status_code == 200
   token = response.json()["access_token"]
   
   # get patients list
@@ -118,7 +118,7 @@ def test_get_patients_as_patient_forbidden(client):
       "password": test_patient_pwd
     }
   )
-  
+  assert response.status_code == 200
   token = response.json()["access_token"]
   
   # get patients list as patient
@@ -142,7 +142,7 @@ def test_create_patient_as_patient_forbidden(client):
       "password": test_patient_pwd
     }
   )
-  
+  assert response.status_code == 200
   token = response.json()["access_token"]
   
   # create patient as patient
