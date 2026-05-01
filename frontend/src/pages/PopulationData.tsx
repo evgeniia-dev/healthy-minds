@@ -16,13 +16,6 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
