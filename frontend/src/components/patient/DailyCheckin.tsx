@@ -61,6 +61,11 @@ export function DailyCheckin({ onSuccess }: { onSuccess?: () => void }) {
       }
 
       toast.success("Check-in saved!");
+      setMoodScore(5);
+      setSleepHours("");
+      setStressLevel(5);
+      setExerciseMinutes("");
+      setNotes("");
       onSuccess?.();
     } catch (error) {
       console.error("Failed to save check-in:", error);

@@ -65,7 +65,9 @@ export function MoodCalendar({ entries }: { entries: MoodEntry[] }) {
     [currentMonth]
   );
 
-  const startDay = getDay(startOfMonth(currentMonth));
+  // getDay returns 0 for Sunday, but the calendar renders Monday first.
+  // Shifting by +6 mod 7 maps Mon→0, Tue→1, …, Sun→6 empty leading cells.
+  const startDay = (getDay(startOfMonth(currentMonth)) + 6) % 7;
 
   return (
     <Card className="w-full overflow-hidden">
