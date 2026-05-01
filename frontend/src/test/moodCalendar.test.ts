@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { mondayFirstOffset } from "@/components/patient/MoodCalendar";
+import { mondayFirstOffset } from "@/lib/dateHelpers";
 
 /**
  * The MoodCalendar renders Monday as the first column of the week grid.
