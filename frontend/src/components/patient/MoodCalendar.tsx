@@ -43,6 +43,17 @@ const moodColors: Record<number, string> = {
 
 const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
+/**
+ * Returns the number of empty leading cells needed to align the first day
+ * of a month to the correct column in a Monday-first weekly grid.
+ *
+ * `getDay` returns 0 for Sunday, so we shift by +6 mod 7:
+ *   Mon (1) → 0,  Tue (2) → 1,  …,  Sun (0) → 6
+ */
+export function mondayFirstOffset(date: Date): number {
+  return (getDay(startOfMonth(date)) + 6) % 7;
+}
+
 export function MoodCalendar({ entries }: { entries: MoodEntry[] }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
@@ -67,7 +78,7 @@ export function MoodCalendar({ entries }: { entries: MoodEntry[] }) {
 
   // getDay returns 0 for Sunday, but the calendar renders Monday first.
   // Shifting by +6 mod 7 maps Mon→0, Tue→1, …, Sun→6 empty leading cells.
-  const startDay = (getDay(startOfMonth(currentMonth)) + 6) % 7;
+  const startDay = mondayFirstOffset(currentMonth);
 
   return (
     <Card className="w-full overflow-hidden">

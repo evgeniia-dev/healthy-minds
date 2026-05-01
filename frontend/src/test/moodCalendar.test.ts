@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getDay, startOfMonth } from "date-fns";
+import { mondayFirstOffset } from "@/components/patient/MoodCalendar";
 
 /**
  * The MoodCalendar renders Monday as the first column of the week grid.
@@ -11,10 +11,6 @@ import { getDay, startOfMonth } from "date-fns";
  *   ...
  *   Sun (0) → 6 empty cells
  */
-function mondayFirstOffset(date: Date): number {
-  return (getDay(startOfMonth(date)) + 6) % 7;
-}
-
 describe("MoodCalendar Monday-first start-day offset", () => {
   it("returns 0 empty cells when month starts on Monday", () => {
     // 2024-01-01 is a Monday
