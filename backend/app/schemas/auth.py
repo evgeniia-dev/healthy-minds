@@ -1,4 +1,8 @@
-from pydantic import BaseModel, EmailStr
+"""
+auth schema file
+"""
+
+from pydantic import BaseModel, EmailStr # Pydantic models for request validation
 
 # Pydantic Data Model used to define the structure and validation of data for professional registration.
 class ProfessionalSignupRequest(BaseModel):
