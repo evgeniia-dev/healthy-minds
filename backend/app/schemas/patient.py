@@ -1,4 +1,9 @@
-from pydantic import BaseModel, EmailStr
+"""
+patient schema file
+"""
+
+
+from pydantic import BaseModel, EmailStr # Pydantic models for validation
 
 # Pydantic Data Model used to define the structure and validation of data for patient registration by registered professional
 class CreatePatientRequest(BaseModel):
