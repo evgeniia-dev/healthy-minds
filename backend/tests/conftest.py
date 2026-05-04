@@ -9,7 +9,7 @@ from app.main import app
 test_email = "test.user@example.com"
 # test inputs for test_patients
 test_professional_email = "prof.test@example.com"
-test_patient_emails =["patient.test@example.com", "patient2.test@example.com"]
+test_patient_emails =["patient.test@example.com", "patient2.test@example.com", "patient3.test@example.com"]
 
 # teardown test inputs committed to database
 @pytest.fixture(scope="module")
