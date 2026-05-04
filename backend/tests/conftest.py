@@ -22,7 +22,7 @@ def client():
       db.query(User).filter(User.email.in_([test_email])).delete(synchronize_session=False)
       db.commit()
 
-    # teardown test inputs committed to database by test_patients
+      # teardown test inputs committed to database by test_patients
       db.query(PatientProfessionalLink).filter(
             PatientProfessionalLink.professional_id.in_(
               db.query(User).filter(User.email.in_([test_professional_email])).with_entities(User.id))
@@ -30,7 +30,7 @@ def client():
       db.query(User).filter(User.email.in_([test_professional_email,    test_patient_emails[0], test_email])).delete(synchronize_session=False)
       db.commit()
 
-    # teardown test inputs committed to database by test_mood
+      # teardown test inputs committed to database by test_mood
       db.query(User).filter(User.email.in_(test_patient_emails)).delete(synchronize_session=False)
       db.commit()
 
