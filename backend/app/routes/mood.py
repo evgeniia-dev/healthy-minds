@@ -9,7 +9,7 @@ from app.schemas.mood import MoodEntryUpsertRequest
 
 router = APIRouter(prefix="/mood-entries", tags=["mood-entries"])
 
-
+# Registered patients by professionals can submit mood-entries through this endpoint using MoodEntryUpsertRequest. If an entry for the current date already exists, it will be updated instead of creating a new one. Professionals cannot submit mood-entries on behalf of patients assigned to them.
 @router.post("/me")
 def upsert_my_mood_entry(
     payload: MoodEntryUpsertRequest,
@@ -75,7 +75,7 @@ def upsert_my_mood_entry(
         "notes": new_entry.notes,
     }
 
-
+# Registered patient can view all their mood-entries, professionals can only view mood-entries of patients assigned to them through GET /patients/{patient_id}/mood-entries endpoint in patient_detail.py. Professionals cannot view mood-entries of patients not assigned to them. 
 @router.get("/me")
 def get_my_mood_entries(
     current_user: User = Depends(get_current_user),
