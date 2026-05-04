@@ -58,7 +58,10 @@ def get_sotkanet_data(
 ):
     # validate year range
     if end_year < start_year:
-        return {"error": "end_year must be greater than or equal to start_year"}
+        return {
+            "success": False,
+            "error": "end_year must be greater than or equal to start_year"
+        }
 
     # fetch data from Sotkanet
     data = fetch_sotkanet_averages(start_year, end_year)
