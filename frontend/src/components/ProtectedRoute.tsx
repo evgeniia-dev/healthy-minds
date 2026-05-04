@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import type { ReactElement } from "react";
 
 type AppRole = "patient" | "professional";
 
@@ -7,7 +8,7 @@ export function ProtectedRoute({
   children,
   role,
 }: {
-  children: JSX.Element;
+  children: ReactElement;
   role?: AppRole;
 }) {
   const { user, loading } = useAuth();

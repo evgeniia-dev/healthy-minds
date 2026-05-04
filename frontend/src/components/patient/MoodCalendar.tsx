@@ -4,7 +4,6 @@ import {
   eachDayOfInterval,
   endOfMonth,
   format,
-  getDay,
   startOfMonth,
   subMonths,
 } from "date-fns";
@@ -22,6 +21,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { mondayFirstOffset } from "@/lib/dateHelpers";
 
 interface MoodEntry {
   entry_date: string;
@@ -65,7 +65,9 @@ export function MoodCalendar({ entries }: { entries: MoodEntry[] }) {
     [currentMonth]
   );
 
-  const startDay = getDay(startOfMonth(currentMonth));
+  // getDay returns 0 for Sunday, but the calendar renders Monday first.
+  // Shifting by +6 mod 7 maps Mon→0, Tue→1, …, Sun→6 empty leading cells.
+  const startDay = mondayFirstOffset(currentMonth);
 
   return (
     <Card className="w-full overflow-hidden">
