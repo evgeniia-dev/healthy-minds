@@ -7,7 +7,6 @@ Login → verifies user + returns token
 
 
 from fastapi import APIRouter, Depends, HTTPException, status # FastAPI tools
-from pydantic import BaseModel # for request validation (schemas)
 from sqlalchemy.orm import Session # database session
 
 from app.db.session import get_db # DB connection dependency
@@ -22,12 +21,15 @@ from app.dependencies import get_current_user # get logged-in user
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-"""
-Endpoint for professional user signup, 
-which checks for existing email, creates a new user, and returns an access token along with user details
-"""
+
+
 @router.post("/signup/professional")
 def signup_professional(payload: ProfessionalSignupRequest, db: Session = Depends(get_db)):
+    """
+    Endpoint for professional user signup, 
+    which checks for existing email, creates a new user, and returns an access token along with user details
+    """
+
     existing_user = db.query(User).filter(User.email == payload.email).first()
 
     if existing_user:
@@ -67,12 +69,13 @@ def signup_professional(payload: ProfessionalSignupRequest, db: Session = Depend
     }
 
 
-"""
-Endpoint for user login, 
-which verifies credentials and returns an access token along with user details if successful
-"""
 @router.post("/login")
 def login(payload: LoginRequest, db: Session = Depends(get_db)):
+    """
+    Endpoint for user login, 
+    which verifies credentials and returns an access token along with user details  if successful
+    """
+
     # find user by email
     user = db.query(User).filter(User.email == payload.email).first()
 
@@ -99,12 +102,12 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
     }
 
 
-"""
-Endpoint to get the current authenticated user's profile information, 
-which requires a valid access token and returns user details
-"""
 @router.get("/me")
 def get_me(current_user: User = Depends(get_current_user)):
+    """
+    Endpoint to get the current authenticated user's profile information, 
+    which requires a valid access token and returns user details
+    """
     # return user info from token
     return {
         "id": str(current_user.id),
@@ -115,16 +118,16 @@ def get_me(current_user: User = Depends(get_current_user)):
     }
 
 
-"""
-Endpoint to update the current authenticated user's profile information, 
-which allows updating the full name and requires a valid access token
-"""
 @router.patch("/me")
 def update_me(
     payload: UpdateMeRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """
+    Endpoint to update the current authenticated user's profile information, 
+    which allows updating the full name and requires a valid access token
+    """
     # update user's name
     current_user.full_name = payload.full_name
 
