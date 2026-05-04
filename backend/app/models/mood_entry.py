@@ -6,7 +6,7 @@ Tracks sleep, stress, exercise + notes
 
 
 import uuid # for generating unique IDs
-from datetime import date, datetime # for dates and timestamps
+from datetime import date, datetime, UTC # for dates and timestamps
 
 from sqlalchemy import Date, DateTime, ForeignKey, Integer, Numeric, Text, UniqueConstraint # column types and constraints
 from sqlalchemy.dialects.postgresql import UUID # PostgreSQL UUID type
@@ -62,14 +62,14 @@ class MoodEntry(Base):
     # when the entry was created
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
+        default=datetime.now(UTC),
         nullable=False
     )
 
     # when the entry was last updated
     updated_at: Mapped[datetime] = mapped_column(DateTime(
         timezone=True),
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=datetime.now(UTC),
+        onupdate=datetime.now(UTC),
         nullable=False
     )
