@@ -6,7 +6,7 @@ Tracks type, content, and timestamps
 
 
 import uuid # for generating unique IDs
-from datetime import datetime # for timestamps
+from datetime import datetime, UTC # for timestamps
 
 from sqlalchemy import DateTime, ForeignKey, String, Text # column types and relationships
 from sqlalchemy.dialects.postgresql import UUID # PostgreSQL UUID type
@@ -48,14 +48,14 @@ class TreatmentNote(Base):
     # when the note was created
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
+        default=datetime.now(tz=UTC),
         nullable=False
     )
 
     # when the note was last updated
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=datetime.now(tz=UTC),
+        onupdate=datetime.now(tz=UTC),
         nullable=False
     )

@@ -6,7 +6,7 @@ Auto-deletes links if a user is removed
 
 
 import uuid # for generating unique IDs
-from datetime import datetime # for timestamps
+from datetime import datetime, UTC # for timestamps
 
 from sqlalchemy import DateTime, ForeignKey, UniqueConstraint # constraints and relationships
 from sqlalchemy.dialects.postgresql import UUID # PostgreSQL UUID type
@@ -47,6 +47,6 @@ class PatientProfessionalLink(Base):
     # when the link was created
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
+        default=datetime.now(tz=UTC),
         nullable=False
     )
