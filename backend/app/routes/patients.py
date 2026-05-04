@@ -17,7 +17,7 @@ from app.db.session import get_db # DB dependency
 from app.dependencies import get_current_user # get logged-in user
 from app.models.user import User # user model
 from app.models.patient_link import PatientProfessionalLink # link between patient and professional
-from app.schemas.patient import CreatePatientRequest# request schema
+from app.schemas.patient import CreatePatientRequest # request schema
 from app.core.security import hash_password # password hashing
 
 

@@ -49,7 +49,7 @@ def get_current_user(
     # fetch user from database
     user = db.query(User).filter(User.id == user_id).first()
 
-    # check if user exist
+    # check if user exists
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
