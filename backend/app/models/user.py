@@ -7,7 +7,7 @@ Keeps timestamps for creation & updates
 
 
 import uuid # for generating unique IDs
-from datetime import datetime # for timestamps
+from datetime import datetime, UTC # for timestamps
 
 from sqlalchemy import String, DateTime, Boolean # column types
 from sqlalchemy.dialects.postgresql import UUID # PostgreSQL UUID type
@@ -61,14 +61,14 @@ class User(Base):
     # when the user was created
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
+        default=datetime.now(tz=UTC),
         nullable=False
     )
 
     # when the user was last updated
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=datetime.now(tz=UTC),
+        onupdate=datetime.now(tz=UTC),
         nullable=False
     )

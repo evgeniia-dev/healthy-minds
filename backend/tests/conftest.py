@@ -9,7 +9,7 @@ from app.main import app
 test_email = "test.user@example.com"
 # test inputs for test_patients
 test_professional_email = "prof.test@example.com"
-test_patient_emails =["patient.test@example.com", "patient2.test@example.com", "patient3.test@example.com"]
+test_patient_emails =["patient.test@example.com", "patient2.test@example.com", "patient3.test@example.com", "patient.detail@example.com"]
 
 # teardown test inputs committed to database
 @pytest.fixture(scope="module")
@@ -30,7 +30,7 @@ def client():
       db.query(User).filter(User.email.in_([test_professional_email,    test_patient_emails[0], test_email])).delete(synchronize_session=False)
       db.commit()
 
-      # teardown test inputs committed to database by test_mood
+      # teardown test inputs committed to database by test_mood and test_patient_detail
       db.query(User).filter(User.email.in_(test_patient_emails)).delete(synchronize_session=False)
       db.commit()
 
