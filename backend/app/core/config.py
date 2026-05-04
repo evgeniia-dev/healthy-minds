@@ -1,6 +1,6 @@
 """
 This is the config file which loads environment variables and sets up configuration values
-Loads settings from venv
+Loads settings from .env
 Provides defaults if missing
 Keeps sensitive data (like DB URL, secret keys) out of the code
 """
