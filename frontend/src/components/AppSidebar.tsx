@@ -51,10 +51,10 @@ export function AppSidebar() {
     role === "professional"
       ? professionalItems
       : role === "patient"
-      ? patientItems
-      : [];
+        ? patientItems
+        : [];
 
-  // startsWith keeps parent routes active, for example /professional/patients/123.
+  // Keeps parent routes active, for example /professional/patients/123.
   const isActive = (path: string) => location.pathname.startsWith(path);
 
   const handleLogout = async () => {
@@ -81,7 +81,6 @@ export function AppSidebar() {
 
           <SidebarGroupContent>
             <SidebarMenu>
-              {/* Show a small loading state instead of an empty sidebar. */}
               {loading ? (
                 !collapsed && (
                   <div className="px-3 py-2 text-sm text-muted-foreground">
@@ -111,6 +110,7 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter>
+        {/* Shows basic user info only when the sidebar is expanded. */}
         {!collapsed && profile?.full_name && (
           <div className="px-3 py-2 text-sm">
             <p className="font-medium text-foreground">{profile.full_name}</p>
