@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AlertTriangle, FileText, TrendingUp, Users } from "lucide-react";
+import { FileText, TrendingUp, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -36,7 +36,6 @@ export default function ProfessionalDashboard() {
     try {
       setLoading(true);
 
-      // First load all patients assigned to the current professional.
       const patientsResponse = await fetch(`${API_URL}/patients`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -53,7 +52,6 @@ export default function ProfessionalDashboard() {
       const patients: Patient[] = patientsData;
       setPatientCount(patients.length);
 
-      // Then load treatment notes for each patient to calculate total notes.
       const noteCounts = await Promise.all(
         patients.map(async (patient) => {
           try {
@@ -63,7 +61,7 @@ export default function ProfessionalDashboard() {
                 headers: {
                   Authorization: `Bearer ${token}`,
                 },
-              }
+              },
             );
 
             const notesData = await notesResponse.json();
@@ -76,7 +74,7 @@ export default function ProfessionalDashboard() {
           } catch {
             return 0;
           }
-        })
+        }),
       );
 
       setNoteCount(noteCounts.reduce((sum, count) => sum + count, 0));
@@ -113,12 +111,6 @@ export default function ProfessionalDashboard() {
       onClick: () => navigate("/population"),
       clickable: true,
     },
-    {
-      label: "Alerts",
-      value: 0,
-      icon: AlertTriangle,
-      clickable: false,
-    },
   ];
 
   return (
@@ -132,7 +124,7 @@ export default function ProfessionalDashboard() {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {stats.map((stat) => (
           <Card
             key={stat.label}
@@ -145,7 +137,6 @@ export default function ProfessionalDashboard() {
             }
             onClick={stat.onClick}
             onKeyDown={(event) => {
-              // Makes clickable cards usable with keyboard Enter/Space.
               if (
                 stat.clickable &&
                 (event.key === "Enter" || event.key === " ")
