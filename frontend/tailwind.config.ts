@@ -1,3 +1,4 @@
+// This code is to modify the style of the fonts in the main page
 import type { Config } from "tailwindcss";
 import tailwindcssAnimate from "tailwindcss-animate";
 
