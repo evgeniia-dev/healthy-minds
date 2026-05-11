@@ -21,14 +21,22 @@ from app.schemas.mood import MoodEntryUpsertRequest # request schema
 # router for mood entry endpoints
 router = APIRouter(prefix="/mood-entries", tags=["mood-entries"])
 
-# Registered patients by professionals can submit mood-entries through this endpoint using MoodEntryUpsertRequest. If an entry for the current date already exists, it will be updated instead of creating a new one. Professionals cannot submit mood-entries on behalf of patients assigned to them.
-# create or update today's mood entry (only for patients)
+
 @router.post("/me")
 def upsert_my_mood_entry(
     payload: MoodEntryUpsertRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+
+    """
+    endpoint for creating or updating today's mood entry (only for patients)
+
+    Registered patients by professionals can submit mood-entries through this endpoint using MoodEntryUpsertRequest.
+    If an entry for the current date already exists, it will be updated instead of creating a new one.
+    Professionals cannot submit mood-entries on behalf of patients assigned to them.
+    """
+
     # only patients are allowed
     if current_user.role != "patient":
         raise HTTPException(
@@ -96,12 +104,22 @@ def upsert_my_mood_entry(
         "notes": new_entry.notes,
     }
 
-# get all mood entries for current user# Registered patient can view all their mood-entries, professionals can only view mood-entries of patients assigned to them through GET /patients/{patient_id}/mood-entries endpoint in patient_detail.py. Professionals cannot view mood-entries of patients not assigned to them. 
+
 @router.get("/me")
 def get_my_mood_entries(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+
+    """
+    get all mood entries for current user# Registered patient can view all their mood-entries,
+
+    professionals can only view mood-entries of patients assigned to them through
+    GET /patients/{patient_id}/mood-entries endpoint in patient_detail.py.
+
+    Professionals cannot view mood-entries of patients not assigned to them.
+    """
+
     # fetch entries sorted by date
     entries = (
         db.query(MoodEntry)
