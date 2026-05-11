@@ -1,5 +1,5 @@
 ## Overview
-The system is built to AuthServiceorize users by using Role-Based Access Control. Hence, the functionalities are specific to the role of the user - Healthcare Professional or Patient.
+The system is built to authorize users by using Role-Based Access Control. Hence, the functionalities are specific to the role of the user - Healthcare Professional or Patient.
 
 
 ## Healthcare Professional Interaction with the System
@@ -12,8 +12,8 @@ sequenceDiagram
 	participant PatientsService
 	participant PatientDetailService
 
-	User->>ProfessionalUI: Open / AuthServiceenticate
-	AuthService-->>ProfessionalUI: AuthService token / user profile / role
+	User->>ProfessionalUI: Open / authenticate
+	AuthService-->>ProfessionalUI: access token(JWT) / user profile / role
   AuthService-->>ProfessionalUI: Render professional dashboard
 
   User->>ProfessionalUI: View dashboards and patient lists
@@ -45,8 +45,8 @@ sequenceDiagram
 	participant MoodMonitorService
 	participant PatientDetailService
 
-	User->>PatientUI: Open / AuthServiceenticate
-  AuthService-->>PatientUI: AuthService token / user profile / role
+	User->>PatientUI: Open / authenticate
+  AuthService-->>PatientUI: access token (JWT) / user profile / role
  	AuthService-->>PatientUI: Render patient dashboard
 
 	User->>PatientUI: Access personal dashboard
