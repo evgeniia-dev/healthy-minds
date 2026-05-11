@@ -125,7 +125,7 @@ def create_patient(
     Email
     Full name
     Avatar URL
-    Account creation date
+    Patient-professional link creation date
     """
 
     # only professionals can create patients

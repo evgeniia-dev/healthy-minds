@@ -212,9 +212,9 @@ def create_treatment_note(
     Create a treatment note for a patient.
 
     Allowed note types:
-    Session
-    Medication
-    Intervention
+    session
+    medication
+    intervention
 
     Access:
     Professionals only

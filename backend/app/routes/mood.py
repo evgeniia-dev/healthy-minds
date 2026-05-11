@@ -112,12 +112,11 @@ def get_my_mood_entries(
 ):
 
     """
-    get all mood entries for current user# Registered patient can view all their mood-entries,
+    Get all mood entries for current user
+    Registered patient can view all their mood-entries
 
-    professionals can only view mood-entries of patients assigned to them through
-    GET /patients/{patient_id}/mood-entries endpoint in patient_detail.py.
-
-    Professionals cannot view mood-entries of patients not assigned to them.
+    This endpoint returns only entries where `MoodEntry.user_id == current_user.id`.
+    It does not provide access to another user's mood entries.
     """
 
     # fetch entries sorted by date
