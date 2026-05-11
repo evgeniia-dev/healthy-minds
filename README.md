@@ -3,12 +3,13 @@ Healthy Minds is a mental health monitoring platform that allows patients to tra
 
 The platform is designed as a proof-of-concept health technology system demonstrating how behavioral data and public health statistics can support mental wellbeing monitoring.
 
+- System Architecture: [docs/](/docs/ARCHITECTURE.md)
+
 ## Live Demo 
 
 - Frontend: https://healthy-minds-1.onrender.com
 
 - Backend API: https://healthy-minds-au98.onrender.com/docs
-
 
 ## Features
 
