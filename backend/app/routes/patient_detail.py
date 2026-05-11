@@ -58,13 +58,28 @@ def ensure_professional_has_access(
         )
 
 
-# get basic patient profile info
 @router.get("/{patient_id}")
 def get_patient_detail(
     patient_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+
+    """
+    Get patient profile details.
+
+    Access:
+    Professionals only
+    Professional must be linked to the patient
+
+    Returns:
+    Patient ID
+    Email
+    Full name
+    Avatar URL
+    Role
+    """
+
     # check access rights
     ensure_professional_has_access(current_user, patient_id, db)
 
@@ -88,13 +103,29 @@ def get_patient_detail(
     }
 
 
-# get patient's mood history
 @router.get("/{patient_id}/mood-entries")
 def get_patient_mood_entries(
     patient_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """
+    Get mood history for a patient.
+
+    Access:
+    Professionals only
+    Professional must be linked to the patient
+
+    Returns:
+    Mood score history
+    Sleep hours
+    Stress level
+    Exercise minutes
+    Notes
+
+    Entries are ordered by date ascending.
+    """
+
     # check access rights
     ensure_professional_has_access(current_user, patient_id, db)
 
@@ -122,13 +153,27 @@ def get_patient_mood_entries(
     ]
 
 
-# get all treatment notes for a patient
 @router.get("/{patient_id}/treatment-notes")
 def get_patient_treatment_notes(
     patient_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """
+    Get all treatment notes for a patient.
+
+    Access:
+    Professionals only
+    Professional must be linked to the patient
+
+    Returns:
+    Session notes
+    Medication notes
+    Intervention notes
+
+    Notes are ordered from newest to oldest.
+    """
+
     # check access rights
     ensure_professional_has_access(current_user, patient_id, db)
 
@@ -155,7 +200,6 @@ def get_patient_treatment_notes(
     ]
 
 
-# create a new treatment note
 @router.post("/{patient_id}/treatment-notes")
 def create_treatment_note(
     patient_id: str,
@@ -163,6 +207,24 @@ def create_treatment_note(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    
+    """
+    Create a treatment note for a patient.
+
+    Allowed note types:
+    session
+    medication
+    intervention
+
+    Access:
+    Professionals only
+    Professional must be linked to the patient
+
+    Request body:
+    note_type
+    content
+    """
+
     # check access rights
     ensure_professional_has_access(current_user, patient_id, db)
 

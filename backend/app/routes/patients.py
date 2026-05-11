@@ -30,6 +30,21 @@ def get_patients(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+
+    """
+    Get all patients linked to the current professional.
+
+    Access:
+    Professionals only
+
+    Returns:
+    Patient ID
+    Email
+    Full name
+    Avatar URL
+    Link creation date
+    """
+
     # only professionals can access patients list
     if current_user.role != "professional":
         raise HTTPException(
@@ -88,6 +103,31 @@ def create_patient(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+
+    """
+    Create a new patient account
+
+    Access:
+    Professionals only
+
+    Features:
+    Prevents duplicate email registration
+    Automatically links patient to professional
+    Stores hashed password securely
+
+    Request body:
+    email
+    password
+    full_name
+
+    Returns:
+    Patient ID
+    Email
+    Full name
+    Avatar URL
+    Patient-professional link creation date
+    """
+
     # only professionals can create patients
     if current_user.role != "professional":
         raise HTTPException(
