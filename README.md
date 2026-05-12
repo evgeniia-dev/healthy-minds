@@ -43,24 +43,24 @@ Finnish Institute for Health and Welfare (THL)
 
 ## Tech Stack
 
-**Frontend:**
-* React
-* Vite
-* TypeScript
-* Tailwind CSS
-* Recharts
+* **Frontend:**
+	* React
+	* Vite
+	* TypeScript
+	* Tailwind CSS
+	* Recharts
 
-**Backend:**
-* FastAPI
-* SQLAlchemy
-* Pydantic
-* JWT Authentication
+* **Backend:**
+	* FastAPI
+	* SQLAlchemy	
+	* Pydantic
+	* JWT Authentication
 
-**Database**
-* PostgreSQL
+* **Database**
+	* PostgreSQL
 
-**Hosting**
-* Render
+* **Hosting**
+	* Render
 
 ## Authentication:
 
@@ -76,50 +76,70 @@ The system uses JWT-based authentication. Protected API routes require a valid B
 
 ## API Documentation
 
-Interactive API documentation is automatically generated using FastAPI Swagger UI.
+Interactive API documentation is automatically generated using FastAPI and OpenAPI documentation by Swagger UI.	
 
 Swagger UI: https://healthy-minds-au98.onrender.com/docs
 
 ReDoc: https://healthy-minds-au98.onrender.com/redoc
 
-## Database Structure - main database entities:
-* users
-* mood_entries
-* treatment_notes
-* patient_professional_links
-* finnish_health_cache
+## Database Structure
+- Main database entities:
+	* users
+	* mood_entries
+	* treatment_notes
+	* patient_professional_links
+	* finnish_health_cache
+
+- [Enhanced Entity Relationship diagram](/docs/ENTITY_RELATIONSHIP.md)
 
 ## Local Development Setup:
 
-**Clone Repository:**
+1. Clone the repository and open the project root.
 
-cd frontend
+2. Configure environment variables:
+	- Frontend: copy `frontend/.env.example` to `frontend/.env`
+	- Backend: copy `backend/.env.example` to `backend/.env`
 
-npm install
+3. Start the backend (FastAPI):
 
-npm run dev
+	```bash
+	cd backend
+	python -m venv venv
+	```
 
-**Frontend development server:** http://localhost:5173 
+- Activate the virtual environment:
+	- Windows (PowerShell): `venv\Scripts\Activate.ps1`
+	- macOS/Linux: `source venv/bin/activate`
 
-**Backend setup:**
+	```bash
+	pip install -r requirements.txt
+	uvicorn app.main:app --reload
+	```
 
-1. Create virtual environment:
+- Backend API: http://127.0.0.1:8000
+- Swagger UI: http://127.0.0.1:8000/docs
 
-cd backend
+4. Start the frontend (Vite + React):
 
-python -m venv venv
+	```bash
+	cd frontend
+	npm install
+	npm run dev
+	```
 
-source venv/bin/activate
+	- Frontend app: http://localhost:5173
 
-2. Install dependencies:
+5. (Optional) Run tests:
 
-pip install -r requirements.txt
+	```bash
+	# Backend tests
+	cd backend
+	pytest
 
-3. Start backend server:
-
-uvicorn app.main:app --reload
-
-http://127.0.0.1:8000
+	# Frontend tests
+	cd frontend
+	npm test
+	```
 
 
 ---
