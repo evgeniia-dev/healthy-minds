@@ -94,7 +94,9 @@ ReDoc: https://healthy-minds-au98.onrender.com/redoc
 **Clone Repository:**
 
 cd frontend
+
 npm install
+
 npm run dev
 
 **Frontend development server:** http://localhost:5173 
@@ -104,7 +106,9 @@ npm run dev
 1. Create virtual environment:
 
 cd backend
+
 python -m venv venv
+
 source venv/bin/activate
 
 2. Install dependencies:
