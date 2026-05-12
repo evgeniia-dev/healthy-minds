@@ -7,7 +7,7 @@ The platform is designed as a proof-of-concept health technology system demonstr
 
 ## Live Demo 
 
-- Frontend: https://healthy-minds-1.onrender.com
+- Visit [Healthy Minds](https://healthy-minds-1.onrender.com)
 
 ## Features
 
