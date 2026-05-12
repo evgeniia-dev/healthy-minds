@@ -9,8 +9,6 @@ The platform is designed as a proof-of-concept health technology system demonstr
 
 - Frontend: https://healthy-minds-1.onrender.com
 
-- Backend API: https://healthy-minds-au98.onrender.com/docs
-
 ## Features
 
 - Patient
@@ -44,21 +42,81 @@ Finnish Institute for Health and Welfare (THL)
 
 
 ## Tech Stack
-- Frontend - React, Vite, TypeScript, Tailwind
-- Backend - FastAPI, SQLAlchemy
-- Database - PostgreSQL
-- Charts - Recharts
-- Hosting - Render
 
+**Frontend:**
+* React
+* Vite
+* TypeScript
+* Tailwind CSS
+* Recharts
 
-## Future Improvements
--	email verification
--	password reset flow
--	patient invitation system
--	improved risk prediction model
--	advanced analytics
--	mobile UI improvements
--	better visualization of behavioral correlations
+**Backend:**
+* FastAPI
+* SQLAlchemy
+* Pydantic
+* JWT Authentication
+
+**Database**
+* PostgreSQL
+
+**Hosting**
+* Render
+
+## Authentication:
+
+The system uses JWT-based authentication. Protected API routes require a valid Bearer token issued during login.
+
+**User roles:**
+* patient
+* professional
+
+**Role-based access control ensures:**
+* patients cannot access professional dashboards
+* professionals cannot access patients outside their assigned list
+
+## API Documentation
+
+Interactive API documentation is automatically generated using FastAPI Swagger UI.
+
+Swagger UI: https://healthy-minds-au98.onrender.com/docs
+
+ReDoc: https://healthy-minds-au98.onrender.com/redoc
+
+## Database Structure - main database entities:
+* users
+* mood_entries
+* treatment_notes
+* patient_professional_links
+* finnish_health_cache
+
+## Local Development Setup:
+
+**Clone Repository:**
+
+cd frontend
+npm install
+npm run dev
+
+**Frontend development server:** http://localhost:5173 
+
+**Backend setup:**
+
+1. Create virtual environment:
+
+cd backend
+python -m venv venv
+source venv/bin/activate
+
+2. Install dependencies:
+
+pip install -r requirements.txt
+
+3. Start backend server:
+
+uvicorn app.main:app --reload
+
+http://127.0.0.1:8000
+
 
 ---
 
