@@ -10,7 +10,7 @@
     />
     <meta name="author" content="Healthy Minds" />
 
-    <link rel="icon" type="image/png" href="/brain-favicon.png?v=2" />
+    <link rel="icon" type="image/png" href="%BASE_URL%brain-favicon.png?v=2" />
 
     <meta property="og:title" content="Healthy Minds — Mental Health Prediction Platform" />
     <meta
@@ -30,5 +30,8 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <!-- Cloudflare Web Analytics -->
+     <script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "34d0530366e2457fa85e06100d0e4560"}'></script>
+     <!-- End Cloudflare Web Analytics -->
   </body>
 </html>

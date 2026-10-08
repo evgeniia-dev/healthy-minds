@@ -13,6 +13,7 @@ Provides:
 from fastapi import FastAPI, Query # FastAPI core + query parameter handling
 from fastapi.middleware.cors import CORSMiddleware # CORS for frontend-backend communication
 
+from app.core.config import ALLOWED_ORIGINS # CORS rules
 from app.routes.auth import router as auth_router # authentication routes
 from app.routes.patients import router as patients_router # patient management routes
 from app.routes.patient_detail import router as patient_detail_router # patient detail routes
@@ -39,10 +40,10 @@ app = FastAPI(title="Healthy Minds API", lifespan=lifespan)
 # configure CORS (allow frontend to call backend)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=False,          # JWT is sent in a header, not cookies
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 # simple health check endpoint

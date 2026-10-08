@@ -11,6 +11,7 @@ export default defineConfig({
       overlay: false,
     },
   },
+  base: process.env.VITE_BASE ?? "/",   // "/" locally, "/healthy-minds/" in CI
   plugins: [react()],
   resolve: {
     alias: {

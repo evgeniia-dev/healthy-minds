@@ -5,9 +5,11 @@ The platform is designed as a proof-of-concept health technology system demonstr
 
 - [System Architecture](/docs/ARCHITECTURE.md)
 
-## Live Demo 
+## Project Links
 
-- Visit [Healthy Minds](https://healthy-minds-1.onrender.com)
+- Live Demo: [Healthy Minds](https://prakgov.github.io/healthy-minds/)
+- API Documentation: [Swagger UI](https://healthy-minds-backend.onrender.com/docs) | [ReDoc](https://healthy-minds-backend.onrender.com/redoc)
+- Team behind Healthy Minds: [Evgeniia, Musa, Luisa, Aziz, Edwin and Myself](https://www.linkedin.com/feed/update/urn:li:activity:7470731738856513536/)
 
 ## Features
 
@@ -74,13 +76,6 @@ The system uses JWT-based authentication. Protected API routes require a valid B
 * patients cannot access professional dashboards
 * professionals cannot access patients outside their assigned list
 
-## API Documentation
-
-Interactive API documentation is automatically generated using FastAPI and OpenAPI documentation by Swagger UI.	
-
-Swagger UI: https://healthy-minds-au98.onrender.com/docs
-
-ReDoc: https://healthy-minds-au98.onrender.com/redoc
 
 ## Database Structure
 - Main database entities:
@@ -97,27 +92,27 @@ ReDoc: https://healthy-minds-au98.onrender.com/redoc
 1. Clone the repository and open the project root.
 
 2. Configure environment variables:
-	- Frontend: copy `frontend/.env.example` to `frontend/.env`
+	- Frontend: no `.env` file is needed locally (the API URL defaults to http://127.0.0.1:8000). Set `VITE_API_URL` in `frontend/.env` only to point at a different backend.
 	- Backend: copy `backend/.env.example` to `backend/.env`
 
 3. Start the backend (FastAPI):
 
 	```bash
 	cd backend
-	python -m venv venv
+	python -m venv .venv
 	```
 
 - Activate the virtual environment:
-	- Windows (PowerShell): `venv\Scripts\Activate.ps1`
-	- macOS/Linux: `source venv/bin/activate`
+	- Windows (PowerShell): `.venv\Scripts\Activate.ps1`
+	- macOS/Linux: `source .venv/bin/activate`
 
 	```bash
 	pip install -r requirements.txt
 	uvicorn app.main:app --reload
 	```
-
-- Backend API: http://127.0.0.1:8000
-- Swagger UI: http://127.0.0.1:8000/docs
+- Local development URLs:
+	- Backend API: http://127.0.0.1:8000
+	- Swagger UI: http://127.0.0.1:8000/docs
 
 4. Start the frontend (Vite + React):
 
@@ -127,7 +122,7 @@ ReDoc: https://healthy-minds-au98.onrender.com/redoc
 	npm run dev
 	```
 
-	- Frontend app: http://localhost:5173
+	- Frontend app: http://localhost:8090
 
 5. (Optional) Run tests:
 

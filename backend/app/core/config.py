@@ -24,4 +24,5 @@ ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
 
 # Frontend URL (used for CORS or redirects)
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:8090")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:8090,http://127.0.0.1:8090")
+ALLOWED_ORIGINS = [o.strip().rstrip("/") for o in FRONTEND_URL.split(",") if o.strip()]
